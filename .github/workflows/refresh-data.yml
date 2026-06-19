@@ -1,0 +1,34 @@
+name: Refresh card data
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Refresh index
+        run: pnpm data:refresh
+      - name: Open PR with refreshed data
+        uses: peter-evans/create-pull-request@v6
+        with:
+          add-paths: public/data
+          branch: chore/data-refresh
+          commit-message: 'chore(data): refresh card index'
+          title: 'chore(data): refresh card index'
+          body: |
+            Automated card-data refresh from yaml-yugi.
+
+            See `public/data/meta.json` for updated counts and parse coverage.
