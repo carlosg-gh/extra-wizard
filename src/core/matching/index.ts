@@ -8,11 +8,14 @@ import type {
 } from '../domain/query';
 import type { ISummonEngine } from './ISummonEngine';
 import { ParserSummonEngine } from './ParserSummonEngine';
+import { withFieldOnlyPaths } from './pathFilter';
 
 export interface RunQueryOptions {
   engine?: ISummonEngine;
   /** Include monsters whose materials could not be parsed (hidden by default). */
   includeUnparsed?: boolean;
+  /** Skip paths needing a main-deck Fusion/Ritual Spell (used by bridge mode). */
+  excludeExtraCardPaths?: boolean;
 }
 
 interface Rollup {
@@ -86,8 +89,10 @@ export function runQuery(
 
   for (const monster of ctx.monsters) {
     if (!opts.includeUnparsed && monster.parseStatus === 'unparsed') continue;
-    if (!quickFeasible(monster, materials.length, roll, input.mode)) continue;
-    const explanation = engine.match(monster, materials, input.mode);
+    const m = opts.excludeExtraCardPaths ? withFieldOnlyPaths(monster) : monster;
+    if (!m) continue; // every path needed an extra card
+    if (!quickFeasible(m, materials.length, roll, input.mode)) continue;
+    const explanation = engine.match(m, materials, input.mode);
     if (explanation) {
       items.push({ monsterId: monster.id, summonType: monster.summonType, explanation });
     }

@@ -4,6 +4,8 @@ import type { Card } from '../../core/domain/types';
 export interface NormalizedCard {
   card: Card;
   materialsText: string;
+  /** Full effect text — feeds the conditions layer (restrictions + alternative summons). */
+  fullText: string;
 }
 
 /**

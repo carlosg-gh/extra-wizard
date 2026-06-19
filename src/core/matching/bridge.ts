@@ -9,6 +9,7 @@ import type {
 import type { ParseStatus } from '../domain/enums';
 import { worstParseStatus } from '../domain/enums';
 import { cardSatisfiesConstraint } from './constraintEval';
+import { pathNeedsExtraCard } from './pathFilter';
 
 /**
  * "Bridge mode" — reachability through a *chain* of summons, where a produced
@@ -171,9 +172,11 @@ function tryMatchMonster(
   monster: ExtraDeckMonster,
   pool: BridgeItem[],
   budget: Budget,
+  excludeExtraCard: boolean,
 ): Omit<MonsterWitness, 'monster'> | null {
   for (const path of monster.paths) {
     if (path.parseStatus === 'unparsed') continue;
+    if (excludeExtraCard && pathNeedsExtraCard(path)) continue;
     const group = path.groups[0];
     if (!group) continue;
     const assignment = matchGroupItems(group, pool, budget);
@@ -224,9 +227,10 @@ function poolRollup(pool: BridgeItem[]): Rollup {
   return { count: pool.length, hasTuner, levelSum, levelCounts };
 }
 
-function feasible(monster: ExtraDeckMonster, roll: Rollup): boolean {
+function feasible(monster: ExtraDeckMonster, roll: Rollup, excludeExtraCard: boolean): boolean {
   for (const path of monster.paths) {
     if (path.parseStatus === 'unparsed') continue;
+    if (excludeExtraCard && pathNeedsExtraCard(path)) continue;
     const g = path.groups[0];
     if (!g) continue;
     if (roll.count < g.minTotal) continue;
@@ -266,7 +270,17 @@ function signature(c: Card): string {
  * `steps: 1`; bridged ones as `steps ≥ 2`, each with a self-contained build
  * chain (names resolved, no client lookups needed).
  */
-export function runBridgeQuery(input: QueryInput, ctx: MatchContext): BridgeQueryResult {
+export interface BridgeOptions {
+  /** Skip paths needing a main-deck Fusion/Ritual Spell (default true in the app). */
+  excludeExtraCardPaths?: boolean;
+}
+
+export function runBridgeQuery(
+  input: QueryInput,
+  ctx: MatchContext,
+  opts: BridgeOptions = {},
+): BridgeQueryResult {
+  const excludeExtraCard = opts.excludeExtraCardPaths ?? false;
   const baseItems: BridgeItem[] = [];
   input.cardIds.forEach((id, i) => {
     const card = ctx.cardsById.get(id);
@@ -313,8 +327,8 @@ export function runBridgeQuery(input: QueryInput, ctx: MatchContext): BridgeQuer
     for (const monster of monsters) {
       if (budget.steps <= 0) break;
       if (reached.has(monster.id)) continue; // an earlier (fewer-step) build already won
-      if (!feasible(monster, roll)) continue;
-      const m = tryMatchMonster(monster, pool, budget);
+      if (!feasible(monster, roll, excludeExtraCard)) continue;
+      const m = tryMatchMonster(monster, pool, budget, excludeExtraCard);
       if (!m) continue;
 
       reached.set(monster.id, { monster, ...m });

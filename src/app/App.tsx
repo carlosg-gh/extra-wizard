@@ -19,6 +19,7 @@ export default function App() {
   const [selected, setSelected] = useState<SelectedEntry[]>([]);
   const [mode, setMode] = useState<MatchMode>('any-subset');
   const [bridgeMode, setBridgeMode] = useState(false);
+  const [includeFusions, setIncludeFusions] = useState(false);
   const [filters, setFilters] = useState<ResultFilters>({ parseStatus: ['exact'] });
   const [results, setResults] = useState<MatchResult[]>([]);
   const [querying, setQuerying] = useState(false);
@@ -67,7 +68,7 @@ export default function App() {
     setQuerying(true);
     const t = window.setTimeout(
       () => {
-        void api.current?.query(expanded, mode, false, bridgeMode).then((r) => {
+        void api.current?.query(expanded, mode, false, bridgeMode, !includeFusions).then((r) => {
           if (!cancelled) {
             setResults(r);
             setQuerying(false);
@@ -80,7 +81,7 @@ export default function App() {
       cancelled = true;
       window.clearTimeout(t);
     };
-  }, [expanded, mode, bridgeMode, workerReady, api]);
+  }, [expanded, mode, bridgeMode, includeFusions, workerReady, api]);
 
   const facets = useMemo(() => deriveFacets(results), [results]);
   // Direct matches lead; bridged ones follow by chain length, then by ATK.
@@ -141,6 +142,25 @@ export default function App() {
               aria-label="Bridge mode"
             />
           </label>
+          {bridgeMode && (
+            <label className="bridge-row bridge-row--sub">
+              <span className="bridge-row__text">
+                <span className="bridge-row__title">Include Fusions</span>
+                <span className="muted xsmall">
+                  Off by default — Fusions need a Fusion Spell. Cards with a self-summon condition
+                  (e.g. Magistus) always show.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                role="switch"
+                className="switch"
+                checked={includeFusions}
+                onChange={(e) => setIncludeFusions(e.target.checked)}
+                aria-label="Include Fusions"
+              />
+            </label>
+          )}
           {db.error && <p className="error">Failed to load card data: {db.error}</p>}
           <p className="muted xsmall status">
             {ready

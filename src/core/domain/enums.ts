@@ -8,6 +8,26 @@ export type SummonType = 'Fusion' | 'Synchro' | 'Xyz' | 'Link';
 
 export const SUMMON_TYPES: readonly SummonType[] = ['Fusion', 'Synchro', 'Xyz', 'Link'];
 
+/**
+ * How a {@link SummoningPath} puts the monster on the field.
+ * - `native`: the ordinary Fusion/Synchro/Xyz/Link summon from the printed recipe.
+ * - `special-condition`: a self-Special-Summon via a stated cost (e.g. Bishbaalkin
+ *   "Tributing 5 Zombie monsters", Magistus). Needs no main-deck card.
+ * - `contact-fusion`: a Fusion Summon performed without a Fusion Spell (Gladiator Beast, Neos).
+ * - `alt-xyz`: an "also Xyz Summon this card by using…" alternative (Rank-Up / material transfer).
+ */
+export type SummonMethod = 'native' | 'special-condition' | 'contact-fusion' | 'alt-xyz';
+
+export const SUMMON_METHODS: readonly SummonMethod[] = [
+  'native',
+  'special-condition',
+  'contact-fusion',
+  'alt-xyz',
+];
+
+/** What a path consumes from the FIELD (informational; the matcher stays material-based). */
+export type CostKind = 'materials' | 'tribute' | 'send-to-gy';
+
 export type Attribute = 'LIGHT' | 'DARK' | 'EARTH' | 'WATER' | 'FIRE' | 'WIND' | 'DIVINE';
 
 export const ATTRIBUTES: readonly Attribute[] = [

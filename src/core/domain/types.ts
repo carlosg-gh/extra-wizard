@@ -1,4 +1,4 @@
-import type { Attribute, LinkArrow, ParseStatus, SummonType } from './enums';
+import type { Attribute, CostKind, LinkArrow, ParseStatus, SummonMethod, SummonType } from './enums';
 
 /**
  * A single material requirement (one "slot specification").
@@ -38,6 +38,13 @@ export interface MaterialConstraint {
   requireSummonType?: SummonType[];
   /** Material must NOT be one of these summon types (e.g. "non-Link monsters"). */
   excludeSummonType?: SummonType[];
+
+  /** Material must HAVE a Level (excludes Link/Xyz). Set on Synchro constraints. */
+  requireLevel?: boolean;
+  /** Material must be a Normal (non-Effect) Monster (e.g. "1 Normal Monster"). */
+  requireNonEffect?: boolean;
+  /** Material must carry ALL these ability tags (Flip / Gemini / Union / Spirit / Toon). */
+  requireAbility?: string[];
 
   /** Whether Tokens may satisfy this constraint. Defaults false for Xyz, true otherwise. */
   tokenAllowed?: boolean;
@@ -79,6 +86,19 @@ export interface SummoningPath {
   parseStatus: ParseStatus;
   /** Free-text parser annotations (e.g. "structural fallback", "substitute allowed"). */
   notes?: string;
+
+  /** How this path summons. Absent ⇒ `native`. */
+  method?: SummonMethod;
+  /** Field cost kind. Absent ⇒ `materials`. */
+  costKind?: CostKind;
+  /**
+   * True when a main-deck card outside the field is mandatory (e.g. a Fusion/Ritual
+   * Spell). Bridge mode default-excludes such paths. Absent ⇒ derived at runtime
+   * (a native Fusion path needs a Fusion Spell; everything else does not).
+   */
+  requiresExtraCard?: boolean;
+  /** Named cards that must be present but are NOT field materials (e.g. ["Mask Change"]). */
+  requiresNamedCard?: string[];
 }
 
 /**

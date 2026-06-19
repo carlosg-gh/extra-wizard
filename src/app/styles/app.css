@@ -351,6 +351,11 @@ button {
   font-size: 0.85rem;
   font-weight: 600;
 }
+.bridge-row--sub {
+  margin-top: 8px;
+  margin-left: 16px;
+  background: var(--surface);
+}
 .switch {
   appearance: none;
   flex: none;

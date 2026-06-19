@@ -14,6 +14,13 @@ export function cardSatisfiesConstraint(card: Card, c: MaterialConstraint): bool
   if (c.requireTuner && !card.isTuner) return false;
   if (c.requireNonTuner && card.isTuner) return false;
   if (c.requireEffect && !card.isEffect) return false;
+  // A Normal Monster is a non-Effect, non-Token monster.
+  if (c.requireNonEffect && (card.isEffect || card.isToken)) return false;
+  // Material must have a Level (Synchro): excludes Link/Xyz monsters (level === null).
+  if (c.requireLevel && card.level == null) return false;
+  if (c.requireAbility && !c.requireAbility.every((a) => card.typeLineTags.includes(a))) {
+    return false;
+  }
   if (c.level && (card.level == null || !c.level.includes(card.level))) return false;
   if (c.levelMin != null && (card.level == null || card.level < c.levelMin)) return false;
   if (c.levelMax != null && (card.level == null || card.level > c.levelMax)) return false;

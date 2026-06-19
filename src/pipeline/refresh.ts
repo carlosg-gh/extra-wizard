@@ -89,12 +89,12 @@ async function main(): Promise<void> {
       skipped += 1;
       continue;
     }
-    const { card, materialsText } = normalized;
+    const { card, materialsText, fullText } = normalized;
     if (seen.has(card.id)) continue;
     seen.add(card.id);
     inputPool.push(card);
     if (card.summonType) {
-      const edm = buildExtraDeckMonster(card, materialsText);
+      const edm = buildExtraDeckMonster(card, materialsText, fullText);
       if (edm) monsters.push(edm);
     }
     processed += 1;
