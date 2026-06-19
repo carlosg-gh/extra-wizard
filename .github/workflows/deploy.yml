@@ -27,7 +27,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # build:app uses the committed public/data (no network fetch at deploy time)
+      # Fetch fresh data (YGOPRODeck, reachable in CI); fall back to committed data on failure.
+      - run: pnpm run data:refresh || echo "data:refresh failed — building with committed data"
       - run: pnpm build:app
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

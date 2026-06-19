@@ -338,7 +338,7 @@ button {
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   gap: 14px;
 }
 .rc {
@@ -356,15 +356,15 @@ button {
 }
 .rc__art {
   position: relative;
-  aspect-ratio: 1.45;
+  aspect-ratio: 0.686; /* full YGO card portrait, including the text box */
   background: var(--surface-3);
   overflow: hidden;
 }
 .rc__art img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 22%;
+  object-fit: cover; /* image already matches the card aspect, so nothing is cropped */
+  object-position: center;
   display: block;
 }
 .rc__art-fallback {
@@ -508,6 +508,34 @@ button {
 .filters__head h2 {
   font-size: 1rem;
 }
+.filters__active {
+  color: var(--muted);
+  font-weight: 400;
+}
+.filters-toggle,
+.filters__close {
+  display: none; /* shown only on narrow viewports (see media query) */
+}
+.filters-toggle {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 550;
+}
+.filters-toggle:hover {
+  border-color: var(--accent);
+}
+.filters__close {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
 .fgroup {
   display: flex;
   flex-direction: column;
@@ -581,12 +609,22 @@ button {
   .layout {
     grid-template-columns: 300px minmax(0, 1fr);
   }
+  .filters-toggle {
+    display: inline-flex;
+  }
   .filters {
     grid-column: 1 / -1;
     position: static;
+    display: none; /* collapsed until the "Filters" button opens it */
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-end;
+  }
+  .filters.is-open {
+    display: flex;
+  }
+  .filters__close {
+    display: inline-block;
   }
   .filters__head {
     width: 100%;

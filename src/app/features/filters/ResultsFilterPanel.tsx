@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ResultFilters } from '@core';
-import type { Facets } from './filterState';
+import { activeFilterCount, type Facets } from './filterState';
 
 function toggle<T>(arr: T[] | undefined, v: T): T[] | undefined {
   const s = new Set(arr ?? []);
@@ -78,24 +78,38 @@ export function ResultsFilterPanel({
   onChange,
   resultCount,
   totalCount,
+  open = false,
+  onClose,
 }: {
   facets: Facets;
   filters: ResultFilters;
   onChange: (f: ResultFilters) => void;
   resultCount: number;
   totalCount: number;
+  open?: boolean;
+  onClose?: () => void;
 }) {
   const set = (patch: Partial<ResultFilters>) => onChange({ ...filters, ...patch });
   const showApprox = !filters.parseStatus || filters.parseStatus.includes('approximate');
+  const active = activeFilterCount(filters);
 
   return (
-    <aside className="filters">
+    <aside className={`filters ${open ? 'is-open' : ''}`} aria-label="Result filters">
       <div className="filters__head">
-        <h2>Filters</h2>
+        <h2>
+          Filters{active > 0 ? <span className="filters__active"> · {active} active</span> : null}
+        </h2>
         <span className="muted small">
           {resultCount} / {totalCount}
         </span>
+        {onClose && (
+          <button type="button" className="filters__close" onClick={onClose} aria-label="Close filters">
+            Done
+          </button>
+        )}
       </div>
+
+      {totalCount === 0 && <p className="muted small">Add materials to see filters.</p>}
 
       {facets.summonTypes.length > 1 && (
         <FilterGroup label="Summon type">
@@ -107,6 +121,22 @@ export function ResultsFilterPanel({
                 onClick={() => set({ summonType: toggle(filters.summonType, t) })}
               >
                 {t}
+              </Chip>
+            ))}
+          </div>
+        </FilterGroup>
+      )}
+
+      {facets.abilities.length > 0 && (
+        <FilterGroup label="Ability">
+          <div className="fchips fchips--scroll">
+            {facets.abilities.map((ab) => (
+              <Chip
+                key={ab}
+                active={filters.ability?.includes(ab)}
+                onClick={() => set({ ability: toggle(filters.ability, ab) })}
+              >
+                {ab}
               </Chip>
             ))}
           </div>
@@ -174,6 +204,10 @@ export function ResultsFilterPanel({
         <RangeInputs value={filters.atk} step={100} onChange={(r) => set({ atk: r })} />
       </FilterGroup>
 
+      <FilterGroup label="DEF">
+        <RangeInputs value={filters.def} step={100} onChange={(r) => set({ def: r })} />
+      </FilterGroup>
+
       {facets.hasApproximate && (
         <FilterGroup label="Parse quality">
           <label className="check">
@@ -187,7 +221,7 @@ export function ResultsFilterPanel({
         </FilterGroup>
       )}
 
-      <button type="button" className="btn-clear" onClick={() => onChange({})}>
+      <button type="button" className="btn-clear" onClick={() => onChange({})} disabled={active === 0}>
         Reset filters
       </button>
     </aside>

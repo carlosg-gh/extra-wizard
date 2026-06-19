@@ -4,7 +4,7 @@ import { useCardDb } from './data/useCardDb';
 import type { MatchResult, SelectedEntry } from './data/types';
 import { CardSearchInput } from './features/card-input/CardSearchInput';
 import { SelectedCardList } from './features/card-input/SelectedCardList';
-import { applyFilters, deriveFacets } from './features/filters/filterState';
+import { activeFilterCount, applyFilters, deriveFacets } from './features/filters/filterState';
 import { ResultsFilterPanel } from './features/filters/ResultsFilterPanel';
 import { MatchModeToggle } from './features/mode-toggle/MatchModeToggle';
 import { ResultsEmptyState } from './features/results/ResultsEmptyState';
@@ -20,6 +20,7 @@ export default function App() {
   const [filters, setFilters] = useState<ResultFilters>({});
   const [results, setResults] = useState<MatchResult[]>([]);
   const [querying, setQuerying] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const addCard = useCallback((c: Card) => {
     setSelected((prev) => {
@@ -81,6 +82,7 @@ export default function App() {
   );
 
   const ready = db.ready && workerReady;
+  const activeFilters = activeFilterCount(filters);
 
   return (
     <div className="app">
@@ -123,6 +125,14 @@ export default function App() {
               {sorted.length} result{sorted.length === 1 ? '' : 's'}
               {querying ? ' …' : ''}
             </h2>
+            <button
+              type="button"
+              className="filters-toggle"
+              onClick={() => setFiltersOpen((v) => !v)}
+              aria-expanded={filtersOpen}
+            >
+              Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
+            </button>
           </div>
           {sorted.length > 0 ? (
             <ResultsGrid results={sorted} />
@@ -137,6 +147,8 @@ export default function App() {
           onChange={setFilters}
           resultCount={sorted.length}
           totalCount={results.length}
+          open={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
         />
       </main>
     </div>

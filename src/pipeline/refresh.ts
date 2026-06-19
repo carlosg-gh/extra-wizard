@@ -5,13 +5,21 @@ import { SUMMON_TYPES } from '../core/domain/enums';
 import type { Card, ExtraDeckMonster } from '../core/domain/types';
 import { buildExtraDeckMonster } from '../core/index-build/buildExtraDeckMonster';
 import { buildIndex, type BuiltIndex } from '../core/index-build/buildIndex';
-import { normalizeCard, pickMaterials } from '../core/index-build/normalizeCard';
 import { coveragePassRate, formatCoverage } from './report/coverage';
-import { RawCardSchema } from './schema/yamlYugiCard';
-import { fetchYamlYugi } from './sources/yamlYugi';
+import type { CardSource } from './sources/types';
+import { ygoprodeckSource } from './sources/ygoprodeck';
+import { yamlYugiSource } from './sources/yamlYugi';
 
 const OUT_DIR = resolve(process.cwd(), 'public', 'data');
 const COVERAGE_THRESHOLD = 0.85;
+
+/** Primary = YGOPRODeck (most complete; CI only); fallback = yaml-yugi (sandbox-reachable). */
+function pickSources(args: Set<string>): CardSource[] {
+  const forced = [...args].find((a) => a.startsWith('--source='))?.split('=')[1];
+  if (forced === 'ygoprodeck') return [ygoprodeckSource];
+  if (forced === 'yaml-yugi') return [yamlYugiSource];
+  return [ygoprodeckSource, yamlYugiSource];
+}
 
 function sha(s: string): string {
   return createHash('sha256').update(s).digest('hex').slice(0, 16);
@@ -51,37 +59,50 @@ async function main(): Promise<void> {
   const limitArg = [...args].find((a) => a.startsWith('--limit='));
   const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : Infinity;
 
-  console.log('Fetching yaml-yugi aggregate…');
-  const { raws, source } = await fetchYamlYugi();
-  console.log(`Fetched ${raws.length} records from ${source}`);
+  // Try sources in order until one is reachable.
+  const sources = pickSources(args);
+  let chosen: { source: CardSource; raws: unknown[]; url: string } | null = null;
+  for (const source of sources) {
+    try {
+      console.log(`Fetching from ${source.name}...`);
+      const { raws, url } = await source.fetchRaw();
+      chosen = { source, raws, url };
+      console.log(`Fetched ${raws.length} records from ${source.name} (${url})`);
+      break;
+    } catch (err) {
+      console.warn(`  [${source.name}] ${(err as Error).message}`);
+    }
+  }
+  if (!chosen) throw new Error('No card source reachable.');
 
+  const { source, raws, url } = chosen;
   const inputPool: Card[] = [];
   const monsters: ExtraDeckMonster[] = [];
   const seen = new Set<string>();
-  let invalid = 0;
+  let skipped = 0;
   let processed = 0;
 
   for (const raw of raws) {
     if (processed >= limit) break;
-    const parsed = RawCardSchema.safeParse(raw);
-    if (!parsed.success) {
-      invalid += 1;
+    const normalized = source.normalize(raw);
+    if (!normalized) {
+      skipped += 1;
       continue;
     }
-    const card = normalizeCard(parsed.data);
-    if (!card || seen.has(card.id)) continue;
+    const { card, materialsText } = normalized;
+    if (seen.has(card.id)) continue;
     seen.add(card.id);
     inputPool.push(card);
     if (card.summonType) {
-      const edm = buildExtraDeckMonster(card, pickMaterials(parsed.data));
+      const edm = buildExtraDeckMonster(card, materialsText);
       if (edm) monsters.push(edm);
     }
     processed += 1;
   }
 
-  const built = buildIndex(inputPool, monsters, source);
+  const built = buildIndex(inputPool, monsters, `${source.name}:${url}`);
   console.log(`\nMonsters (usable as materials): ${inputPool.length}`);
-  console.log(`Extra Deck monsters: ${monsters.length}  (skipped ${invalid} invalid records)`);
+  console.log(`Extra Deck monsters: ${monsters.length}  (skipped ${skipped} non-monster/invalid records)`);
   console.log(formatCoverage(built.meta.coverage));
 
   if (!coverageOnly) {
@@ -92,7 +113,7 @@ async function main(): Promise<void> {
   const rate = coveragePassRate(built.meta.coverage);
   console.log(`\nCoverage pass rate: ${(rate * 100).toFixed(1)}%`);
   if (rate < COVERAGE_THRESHOLD) {
-    console.error(`Below threshold ${(COVERAGE_THRESHOLD * 100).toFixed(0)}% — failing.`);
+    console.error(`Below threshold ${(COVERAGE_THRESHOLD * 100).toFixed(0)}% - failing.`);
     process.exit(1);
   }
 }

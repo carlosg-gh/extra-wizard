@@ -54,7 +54,7 @@ React + TypeScript + Vite, fully client-side (static hosting). Pure domain logic
 
 ## Data & credits
 
-Card data from **yaml-yugi** (DawnbrandBots). Card images from **YGOPRODeck**. Card names,
+Card data from **YGOPRODeck** (primary) with **yaml-yugi** (DawnbrandBots) as a fallback. Card images from **YGOPRODeck**. Card names,
 text, and images are © Studio Dice / SHUEISHA / TV TOKYO / KONAMI; this is an unofficial
 fan tool. Per YGOPRODeck's policy, re-host or proxy card images in production rather than
 hotlinking.
