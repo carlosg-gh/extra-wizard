@@ -36,17 +36,20 @@ export function mkCard(p: Partial<Card> & { name: string }): Card {
   };
 }
 
-/** Build an Extra Deck monster by parsing the given material string. */
+/** Build an Extra Deck monster by parsing the given material string (+ optional full text). */
 export function mkEdm(
   p: Partial<Card> & { name: string; summonType: SummonType },
   materials: string,
+  fullText?: string,
 ): ExtraDeckMonster {
   const base = mkCard(p);
   const paths = parseMaterials(materials, {
+    id: base.id,
     summonType: p.summonType,
     level: base.level,
     rank: base.rank,
     linkRating: base.linkRating,
+    fullText,
   });
   const parseStatus = paths.map((x) => x.parseStatus).reduce(worstParseStatus, 'exact');
   return { ...base, summonType: p.summonType, materialsRaw: materials, paths, parseStatus };

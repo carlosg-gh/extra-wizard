@@ -41,6 +41,9 @@ const FILLER = new Set([
   'except',
 ]);
 
+/** Monster ability words checked against a card's `typeLineTags` (Tuner handled separately). */
+const ABILITY_WORDS = ['Flip', 'Gemini', 'Union', 'Spirit', 'Toon'] as const;
+
 export interface ParsedCount {
   min: number;
   max: number | null;
@@ -69,6 +72,8 @@ export interface FilterResult {
   requireTuner?: boolean;
   requireNonTuner?: boolean;
   requireEffect?: boolean;
+  requireNonEffect?: boolean;
+  requireAbility?: string[];
   requireSummonType?: SummonType[];
   excludeSummonType?: SummonType[];
   /** Unrecognized residual text (non-empty ⇒ the segment is only approximate). */
@@ -120,6 +125,23 @@ export function parseFilters(input: string): FilterResult {
     return ' ';
   });
   if (sts.length) out.requireSummonType = Array.from(new Set(sts));
+
+  // Normal (non-Effect) and ability words must be peeled BEFORE the generic
+  // "Effect" rule so "non-Effect"/"Normal" aren't misread as requireEffect and
+  // "Gemini"/"Flip Effect" capture the ability without leaking to leftover.
+  if (/\bnon-Effect\b/i.test(rest)) {
+    out.requireNonEffect = true;
+    rest = rest.replace(/\bnon-Effect\b/gi, ' ');
+  } else if (/\bNormal\b/i.test(rest)) {
+    out.requireNonEffect = true;
+    rest = rest.replace(/\bNormal\b/gi, ' ');
+  }
+
+  const abilities = ABILITY_WORDS.filter((a) => new RegExp(`\\b${a}\\b`, 'i').test(rest));
+  if (abilities.length) {
+    out.requireAbility = [...abilities];
+    for (const a of abilities) rest = rest.replace(new RegExp(`\\b${a}\\b`, 'gi'), ' ');
+  }
 
   if (/\bEffect\b/i.test(rest)) {
     out.requireEffect = true;
@@ -176,6 +198,8 @@ export function buildConstraint(
   if (f.requireTuner) c.requireTuner = true;
   if (f.requireNonTuner) c.requireNonTuner = true;
   if (f.requireEffect) c.requireEffect = true;
+  if (f.requireNonEffect) c.requireNonEffect = true;
+  if (f.requireAbility) c.requireAbility = f.requireAbility;
   if (f.requireSummonType) c.requireSummonType = f.requireSummonType;
   if (f.excludeSummonType) c.excludeSummonType = f.excludeSummonType;
   if (tokenAllowed !== undefined) c.tokenAllowed = tokenAllowed;

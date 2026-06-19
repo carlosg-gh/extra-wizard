@@ -16,7 +16,10 @@ export function parseSynchro(
     const { min, max, rest } = parseCount(seg);
     const f = parseFilters(rest);
     if (!f.exact) exact = false;
-    constraints.push(buildConstraint(min, max, f, seg));
+    const c = buildConstraint(min, max, f, seg);
+    // Synchro materials must have a Level (excludes Link/Xyz monsters, which have none).
+    c.requireLevel = true;
+    constraints.push(c);
   }
   // A standard Synchro names a Tuner. If none was detected, the wording is
   // non-standard — keep what we parsed but flag it.

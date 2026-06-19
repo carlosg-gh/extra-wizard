@@ -1,4 +1,8 @@
-import { normalizeYgoprodeckCard, ygoprodeckMaterials } from '../../core/index-build/normalizeYgoprodeck';
+import {
+  normalizeYgoprodeckCard,
+  ygoprodeckFullText,
+  ygoprodeckMaterials,
+} from '../../core/index-build/normalizeYgoprodeck';
 import type { CardSource, NormalizedCard } from './types';
 
 // One bulk request returns every card under `data`. `misc=yes` adds misc_info
@@ -22,8 +26,9 @@ export const ygoprodeckSource: CardSource = {
     return { raws: body.data, url: URL };
   },
   normalize(raw: unknown): NormalizedCard | null {
-    const card = normalizeYgoprodeckCard(raw as Parameters<typeof normalizeYgoprodeckCard>[0]);
+    const typed = raw as Parameters<typeof normalizeYgoprodeckCard>[0];
+    const card = normalizeYgoprodeckCard(typed);
     if (!card) return null;
-    return { card, materialsText: ygoprodeckMaterials(raw as Parameters<typeof ygoprodeckMaterials>[0]) };
+    return { card, materialsText: ygoprodeckMaterials(typed), fullText: ygoprodeckFullText(typed) };
   },
 };

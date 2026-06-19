@@ -1,4 +1,4 @@
-import { normalizeCard, pickMaterials } from '../../core/index-build/normalizeCard';
+import { normalizeCard, pickFullText, pickMaterials } from '../../core/index-build/normalizeCard';
 import { RawCardSchema } from '../schema/yamlYugiCard';
 import type { CardSource, NormalizedCard } from './types';
 
@@ -39,6 +39,6 @@ export const yamlYugiSource: CardSource = {
     if (!parsed.success) return null;
     const card = normalizeCard(parsed.data);
     if (!card) return null;
-    return { card, materialsText: pickMaterials(parsed.data) };
+    return { card, materialsText: pickMaterials(parsed.data), fullText: pickFullText(parsed.data) };
   },
 };

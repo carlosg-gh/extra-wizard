@@ -10,6 +10,7 @@ export interface WorkerApi {
     mode: MatchMode,
     includeUnparsed: boolean,
     bridge?: boolean,
+    excludeFusions?: boolean,
   ): Promise<MatchResult[]>;
 }
 

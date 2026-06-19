@@ -136,3 +136,8 @@ export function normalizeYgoprodeckCard(raw: YgoprodeckRaw): Card | null {
 export function ygoprodeckMaterials(raw: YgoprodeckRaw): string {
   return materialLineFromText(raw.desc);
 }
+
+/** The full effect text (for the conditions layer). */
+export function ygoprodeckFullText(raw: YgoprodeckRaw): string {
+  return raw.desc ?? '';
+}

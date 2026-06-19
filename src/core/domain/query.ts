@@ -1,5 +1,5 @@
 import type { Card, ExtraDeckMonster } from './types';
-import type { ParseStatus, SummonType } from './enums';
+import type { ParseStatus, SummonMethod, SummonType } from './enums';
 
 /**
  * - `any-subset`: the monster is summonable using SOME subset of the provided
@@ -51,7 +51,10 @@ export interface MatchContext {
 }
 
 /** Client-side, post-query facet filters applied to results. */
-export interface ResultFilters {  summonType?: SummonType[];
+export interface ResultFilters {
+  summonType?: SummonType[];
+  /** Filter by how the monster is summoned (native / special-condition / contact-fusion / alt-xyz). */
+  summonMethod?: SummonMethod[];
   archetype?: string[];
   attribute?: string[];
   race?: string[];

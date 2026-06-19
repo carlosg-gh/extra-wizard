@@ -45,6 +45,7 @@ class MatchEngineWorker {
     mode: MatchMode,
     includeUnparsed: boolean,
     bridge = false,
+    excludeFusions = true,
   ): Promise<MatchResult[]> {
     await this.ready;
     const cardsById = new Map<string, Card>();
@@ -53,7 +54,7 @@ class MatchEngineWorker {
     const ctx = { monsters: this.monsters, cardsById };
 
     if (bridge) {
-      const result = runBridgeQuery({ cardIds, mode }, ctx);
+      const result = runBridgeQuery({ cardIds, mode }, ctx, { excludeExtraCardPaths: excludeFusions });
       return result.items.map((it) => ({
         monster: stripPaths(this.byId.get(it.monsterId) as ExtraDeckMonster),
         steps: it.steps,

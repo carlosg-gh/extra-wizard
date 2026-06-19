@@ -130,3 +130,8 @@ export function pickMaterials(raw: RawCard): string {
   if (typeof raw.materials === 'string' && raw.materials.trim()) return raw.materials.trim();
   return materialLineFromText(enStr(raw.text));
 }
+
+/** The full English effect text (for the conditions layer). */
+export function pickFullText(raw: RawCard): string {
+  return enStr(raw.text);
+}

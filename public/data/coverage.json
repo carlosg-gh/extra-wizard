@@ -1,33 +1,33 @@
 {
   "overall": {
-    "exact": 1687,
-    "approximate": 173,
-    "unparsed": 0,
+    "exact": 1678,
+    "approximate": 179,
+    "unparsed": 3,
     "total": 1860
   },
   "byType": {
     "Fusion": {
-      "exact": 425,
-      "approximate": 52,
+      "exact": 434,
+      "approximate": 43,
       "unparsed": 0,
       "total": 477
     },
     "Synchro": {
-      "exact": 409,
-      "approximate": 45,
+      "exact": 412,
+      "approximate": 42,
       "unparsed": 0,
       "total": 454
     },
     "Xyz": {
-      "exact": 503,
-      "approximate": 19,
+      "exact": 475,
+      "approximate": 47,
       "unparsed": 0,
       "total": 522
     },
     "Link": {
-      "exact": 350,
-      "approximate": 57,
-      "unparsed": 0,
+      "exact": 357,
+      "approximate": 47,
+      "unparsed": 3,
       "total": 407
     }
   },
@@ -35,10 +35,11 @@
     "approximate": [
       "Mekk-Knight Crusadia Avramax: 2+ monsters Special Summoned from the Extra Deck",
       "Night's End Administrator: \"Night's End Sorcerer\" + 1 or more non-Tuner monsters",
-      "Sunvine Healer: 1 Plant Normal Monster",
+      "Full Armored Crystalzero Lancer: 3 Level 6 WATER monsters",
       "Beyond the Pendulum: 2 Effect Monsters, including a Pendulum Monster",
       "Road Warrior: \"Road Synchron\" + 2 or more non-Tuner monsters",
       "Vicious Astraloud: \"Visas Starfrost\" + 1 monster with 1500 ATK/2100 DEF",
+      "Number C39: Utopia Ray: 3 Level 4 LIGHT monsters",
       "Frightfur Sabre-Tooth: 1 \"Frightfur\" Fusion Monster + 1+ \"Fluffal\" and/or \"Edge Imp\" monsters",
       "Tri-Brigade Arms Bucephalus II: 3+ Beast, Beast-Warrior, and/or Winged Beast monsters",
       "Tri-Brigade Ferrijit the Barren Blossom: 2 Beast, Beast-Warrior, and/or Winged Beast monsters",
@@ -47,6 +48,8 @@
       "Genex Ally Triarm: \"Genex Controller\" + 1 or more non-Tuner monsters",
       "Taotie Dragon: 2+ monsters Special Summoned from the Extra Deck",
       "Elemental HERO Divine Neos: 5 \"Neos\", \"Neo Space\", \"Neo-Spacian\", or \"HERO\" monsters, including at least 1 \"Neos\" or \"Neo Space\" monster, 1 \"Neo-Spacian\" monster, and 1 \"HERO\" monster",
+      "Super Starslayer TY-PHON - Sky Crisis: 2 Level 12 monsters",
+      "Outer Entity Azathot: 3 Level 5 monsters",
       "Ra'ten, the Heavenly General: 2+ monsters with the same Type",
       "Virtual World Dragon - Longlong: 2+ Level 3 monsters with the same Type and Attribute",
       "Darkness Metal, the Dragon of Dark Steel: 2+ Effect Monsters with the same Type and Attribute",
@@ -54,27 +57,32 @@
       "Deep Sea Repetiteur: \"Deep Sea Diva\" + 1 or more non-Tuner monsters",
       "Supreme King Dragon Dark Rebellion: 2 Level 4 DARK Pendulum Monsters",
       "Magnum the Reliever: 1 monster Special Summoned from the Extra Deck + 1 monster in the hand",
+      "Downerd Magician: 2 Level 4 Spellcaster-Type monsters",
+      "D/D/D Deviser King Deus Machinex: 2 Level 10 Fiend-Type monsters",
+      "Ghostrick Angel of Mischief: 2 Level 4 monsters",
+      "Number S39: Utopia the Lightning: 3 Level 5 LIGHT monsters",
       "Gaia Prominence, the Fierce Force: \"Gaia Blaze, the Force of the Sun\" + 1 face-up monster you control",
       "Titaniklad the Ash Dragon: \"Fallen of Albaz\" + 1 monster with 2500 or more ATK",
       "Fossil Machine Skull Buggy: 1 Rock-Type monster in your GY + 1 Level 4 or lower monster",
       "Master of Chaos: \"Dark Magician\" + 1 \"Chaos\" or \"Black Luster Soldier\" Ritual Monster",
       "GranSolfachord Coolia: 2+ monsters, including a Pendulum Monster",
+      "CXyz Barian Hope: 3 or more Level 7 monsters",
+      "Expurrely Noir: 2 Level 7 monsters",
       "Ursarctic Grand Chariot: Cannot be Synchro Summoned. Must be Special Summoned (from your Extra Deck) by sending 2 monsters you control with a Level difference of 7 to the GY (1 Level 8 or higher Tuner and 1 non-Tuner Synchro Monster). If this card is Special Summoned: You can target up to 2 other cards on the field; destroy them. Once per turn, when a card or effect is activated that targets an \"Ursarctic\" card you control (Quick Effect): You can Tribute 1 monster from your hand or field; negate the activation.",
-      "Vola-Chemicritter Methydraco: 2 Level 8 Gemini monsters",
       "Starving Venemy Dragon: 1 DARK monster + 1 Pendulum Monster",
-      "Shaddoll Construct: 2 Flip monsters",
+      "Dingirsu, the Orcust of the Evening Star: 2 Level 8 monsters",
       "Berfomet the Mythical King of Phantom Beasts: 2 monsters with different Types (Beast, Fiend, or Illusion)",
       "Ursarctic Polar Star: Cannot be Synchro Summoned. Must be Special Summoned (from your Extra Deck) by sending 2 monsters you control with a Level difference of 1 to the GY (1 Tuner and 1 non-Tuner). You can Tribute 1 Level 8 \"Ursarctic\" monster from your hand or field and this card; Special Summon 1 Level 7 \"Ursarctic\" Synchro Monster from your Extra Deck, ignoring its Summoning conditions, and if you do, it gains this effect. ● Your opponent cannot activate the effects of monsters with a Level, that were Special Summoned from the Extra Deck.",
-      "The Great Double Casted Caster: 2 non-Effect Monsters",
+      "Gaia Dragon, the Thunder Charger: 2 Level 7 monsters",
       "Jet Warrior: \"Jet Synchron\" + 1 or more non-Tuner monsters",
       "Gold Pride - Nytro Blaster: 2 \"Gold Pride\" monsters with different Levels",
+      "Number S39: Utopia Prime: 3 Level 4 LIGHT monsters",
       "Exceed the Pendulum: 2+ Effect Monsters, including a Pendulum Monster",
+      "Full Armored Black Ray Lancer: 3 Level 4 WATER monsters",
       "Magikey Dragon - Andrabime: 1 \"Magikey\" Effect Monster + 1 non-Token Normal Monster",
-      "Azure-Eyes Silver Dragon: 1 Tuner + 1 or more non-Tuner Normal Monsters",
-      "Superalloy Beast Raptinus: 1 Gemini Monster + 1 Gemini Monster",
-      "Allvain the Essence of Vanity: 2 Normal Monsters",
+      "Constellar Ptolemy M7: 2 Level 6 monsters",
       "Curious, the Lightsworn Dominion: 3 monsters with the same Attribute but different Types",
-      "Elemental HERO Grandmerge: 2 \"HERO\" Normal Monsters",
+      "Odd-Eyes Rebellion Dragon Overlord: 2 Level 7 monsters",
       "Hydro Genex: \"Genex Controller\" + 1 or more non-Tuner WATER monsters",
       "Tsuchigumo, the Poisonous Mayakashi: 1 Tuner + 1+ non-Tuner monsters / You can only control 1 \"Tsuchigumo, the Poisonous Mayakashi\". You can only use each of these effects of \"Tsuchigumo, the Poisonous Mayakashi\" once per turn.",
       "Patissciel Couverture: 2 Pendulum Monsters",
@@ -84,16 +92,12 @@
       "Tri-Brigade Rugal the Silver Sheller: 2+ Beast, Beast-Warrior, and/or Winged Beast monsters",
       "Chimeratech Megafleet Dragon: 1 \"Cyber Dragon\" monster + 1+ monsters in the Extra Monster Zone",
       "Junk Gardna: \"Junk Synchron\" + 1 or more non-Tuner monsters",
-      "Nephthys, the Sacred Flame: 2+ monsters, including a Ritual Monster",
-      "Dragon Master Magia: \"Blue-Eyes Ultimate Dragon\" or 3 \"Blue-Eyes\" monsters + 1 \"Chaos\" or \"Black Luster Soldier\" Ritual Monster",
-      "Defender of the Labyrinth: 2 Normal Monsters",
-      "Tri-Brigade Shuraig the Ominous Omen: 2+ Beast, Beast-Warrior, and/or Winged Beast monsters",
-      "Thermal Genex: \"Genex Controller\" + 1 or more non-Tuner FIRE monsters",
-      "Metalfoes Crimsonite: 1 \"Metalfoes\" monster + 2 monsters with 3000 or less ATK",
-      "Supreme King Dragon Starving Venom: 2 DARK Pendulum Monsters",
-      "Moon Dragon Quilla: \"Supay\" + 1 or more non-Tuner monsters",
-      "Archfiend Black Skull Dragon: 1 Level 6 \"Archfiend\" Normal Monster + 1 \"Red-Eyes\" Normal Monster"
+      "Nephthys, the Sacred Flame: 2+ monsters, including a Ritual Monster"
     ],
-    "unparsed": []
+    "unparsed": [
+      "Clara & Rushka, the Ventriloduo: 1 Normal Summoned/Set monster",
+      "Duralume, Vaalmonican Heathen Hallow: 1 Effect Monster",
+      "Zebufera, Vaalmonican Hallow Heathen: 1 Effect Monster"
+    ]
   }
 }
