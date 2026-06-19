@@ -71,6 +71,14 @@ test('loads data, adds two Level-4 materials, and shows results', async ({ page 
   await page.keyboard.press('Escape');
   await expect(page.locator('.modal')).toHaveCount(0);
 
+  // Bridge mode (chained summoning) re-runs the query and still yields results
+  // (it's a superset of the direct matches).
+  const bridge = page.getByRole('switch', { name: /bridge mode/i });
+  await bridge.check();
+  await expect(bridge).toBeChecked();
+  await expect(page.locator('.rc').first()).toBeVisible({ timeout: 20_000 });
+  expect(await page.locator('.rc').count()).toBeGreaterThan(0);
+
   // Fail only on genuine app errors (ignore unreachable card images in CI).
   const appErrors = logs.filter(
     (l) =>

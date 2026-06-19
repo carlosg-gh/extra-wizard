@@ -5,7 +5,12 @@ import type { MatchResult } from '../data/types';
 
 export interface WorkerApi {
   whenReady(): Promise<number>;
-  query(selected: Card[], mode: MatchMode, includeUnparsed: boolean): Promise<MatchResult[]>;
+  query(
+    selected: Card[],
+    mode: MatchMode,
+    includeUnparsed: boolean,
+    bridge?: boolean,
+  ): Promise<MatchResult[]>;
 }
 
 export function useMatchWorker(): {

@@ -10,6 +10,7 @@ export { FUSION_SUBSTITUTE_IDS, detectUniqueness, detectTokensExcluded } from '.
 
 export { runQuery } from './matching';
 export type { RunQueryOptions } from './matching';
+export { runBridgeQuery } from './matching/bridge';
 export { ParserSummonEngine } from './matching/ParserSummonEngine';
 export type { ISummonEngine } from './matching/ISummonEngine';
 export { cardSatisfiesConstraint } from './matching/constraintEval';
