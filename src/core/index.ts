@@ -1,0 +1,16 @@
+/** Public API of the DOM-free core (shared by the pipeline, the app, and tests). */
+
+export * from './domain/enums';
+export * from './domain/types';
+export * from './domain/query';
+
+export { parseMaterials } from './parser/parseMaterials';
+export type { ParserMonsterMeta } from './parser/parseMaterials';
+export { FUSION_SUBSTITUTE_IDS, detectUniqueness, detectTokensExcluded } from './parser/lexicon';
+
+export { runQuery } from './matching';
+export type { RunQueryOptions } from './matching';
+export { ParserSummonEngine } from './matching/ParserSummonEngine';
+export type { ISummonEngine } from './matching/ISummonEngine';
+export { cardSatisfiesConstraint } from './matching/constraintEval';
+export { matchGroup } from './matching/groupMatch';

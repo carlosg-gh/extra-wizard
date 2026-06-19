@@ -1,0 +1,48 @@
+{
+  "name": "extra-wizard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "YuGiOh deckbuilding tools — Extra Deck Monster Searcher",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "pnpm run data:refresh && pnpm run build:app",
+    "build:app": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "data:refresh": "node --max-old-space-size=4096 --import tsx src/pipeline/refresh.ts",
+    "data:coverage": "node --max-old-space-size=4096 --import tsx src/pipeline/refresh.ts --coverage-only",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "comlink": "^4.4.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.56.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "typescript-eslint": "^8.20.0",
+    "jsdom": "^25.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8",
+    "zod": "^3.24.1"
+  }
+}
