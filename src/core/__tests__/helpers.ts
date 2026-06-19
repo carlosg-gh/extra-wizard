@@ -29,6 +29,7 @@ export function mkCard(p: Partial<Card> & { name: string }): Card {
     isEffect: p.isEffect ?? true,
     isToken: p.isToken ?? false,
     isPendulum: p.isPendulum ?? false,
+    ocgOnly: p.ocgOnly ?? false,
     isFusionSubstitute: p.isFusionSubstitute ?? false,
     summonType: p.summonType ?? null,
     imageId: id,

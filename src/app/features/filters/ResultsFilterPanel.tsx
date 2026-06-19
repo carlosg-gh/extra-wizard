@@ -129,7 +129,7 @@ export function ResultsFilterPanel({
 
       {facets.abilities.length > 0 && (
         <FilterGroup label="Ability">
-          <div className="fchips fchips--scroll">
+          <div className="fchips">
             {facets.abilities.map((ab) => (
               <Chip
                 key={ab}
@@ -161,7 +161,7 @@ export function ResultsFilterPanel({
 
       {facets.races.length > 1 && (
         <FilterGroup label="Type">
-          <div className="fchips fchips--scroll">
+          <div className="fchips">
             {facets.races.map((r) => (
               <Chip
                 key={r}

@@ -111,6 +111,8 @@ export interface Card {
   isEffect: boolean;
   isToken: boolean;
   isPendulum: boolean;
+  /** Released only in the OCG (never in the TCG). Drives the "OCG" ribbon. */
+  ocgOnly: boolean;
   /** True for the small set of "Fusion Substitute" monsters (e.g. King of the Swamp). */
   isFusionSubstitute: boolean;
   /** Extra Deck mechanic, or `null` for main-deck monsters. */

@@ -1,8 +1,9 @@
 import { normalizeYgoprodeckCard, ygoprodeckMaterials } from '../../core/index-build/normalizeYgoprodeck';
 import type { CardSource, NormalizedCard } from './types';
 
-// One bulk request returns every card under `data`.
-const URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php';
+// One bulk request returns every card under `data`. `misc=yes` adds misc_info
+// (formats / release dates) used to flag OCG-only cards.
+const URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes';
 
 /**
  * YGOPRODeck — the most complete, frequently-updated DB. Reachable from CI;

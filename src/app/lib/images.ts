@@ -4,7 +4,10 @@
  * edge proxy / re-host (see CLAUDE.md "image strategy"). For local dev we point
  * at the CDN directly and degrade gracefully when an image is unavailable.
  */
-export function cardImageUrl(imageId: string, size: 'small' | 'cropped' = 'small'): string {
-  const folder = size === 'cropped' ? 'cards_cropped' : 'cards_small';
+export function cardImageUrl(
+  imageId: string,
+  size: 'small' | 'cropped' | 'full' = 'small',
+): string {
+  const folder = size === 'cropped' ? 'cards_cropped' : size === 'full' ? 'cards' : 'cards_small';
   return `https://images.ygoprodeck.com/images/${folder}/${imageId}.jpg`;
 }

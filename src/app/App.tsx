@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Card, MatchMode, ResultFilters } from '@core';
 import { useCardDb } from './data/useCardDb';
-import type { MatchResult, SelectedEntry } from './data/types';
+import type { MatchResult, ResultMonster, SelectedEntry } from './data/types';
 import { CardSearchInput } from './features/card-input/CardSearchInput';
 import { SelectedCardList } from './features/card-input/SelectedCardList';
 import { activeFilterCount, applyFilters, deriveFacets } from './features/filters/filterState';
@@ -9,6 +9,7 @@ import { ResultsFilterPanel } from './features/filters/ResultsFilterPanel';
 import { MatchModeToggle } from './features/mode-toggle/MatchModeToggle';
 import { ResultsEmptyState } from './features/results/ResultsEmptyState';
 import { ResultsGrid } from './features/results/ResultsGrid';
+import { CardDetailModal } from './features/results/CardDetailModal';
 import { useMatchWorker } from './worker/useMatchWorker';
 
 export default function App() {
@@ -17,10 +18,11 @@ export default function App() {
 
   const [selected, setSelected] = useState<SelectedEntry[]>([]);
   const [mode, setMode] = useState<MatchMode>('any-subset');
-  const [filters, setFilters] = useState<ResultFilters>({});
+  const [filters, setFilters] = useState<ResultFilters>({ parseStatus: ['exact'] });
   const [results, setResults] = useState<MatchResult[]>([]);
   const [querying, setQuerying] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<ResultMonster | null>(null);
 
   const addCard = useCallback((c: Card) => {
     setSelected((prev) => {
@@ -135,7 +137,7 @@ export default function App() {
             </button>
           </div>
           {sorted.length > 0 ? (
-            <ResultsGrid results={sorted} />
+            <ResultsGrid results={sorted} onSelect={setSelectedCard} />
           ) : (
             <ResultsEmptyState hasInput={expanded.length > 0} loading={querying} />
           )}
@@ -150,6 +152,10 @@ export default function App() {
           open={filtersOpen}
           onClose={() => setFiltersOpen(false)}
         />
+
+        {selectedCard && (
+          <CardDetailModal monster={selectedCard} onClose={() => setSelectedCard(null)} />
+        )}
       </main>
     </div>
   );
