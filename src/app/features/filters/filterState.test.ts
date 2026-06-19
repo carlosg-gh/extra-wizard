@@ -23,6 +23,7 @@ function mk(over: Partial<ResultMonster>): MatchResult {
       isEffect: true,
       isToken: false,
       isPendulum: false,
+      ocgOnly: false,
       isFusionSubstitute: false,
       summonType: 'Synchro',
       materialsRaw: '',

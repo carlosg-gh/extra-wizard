@@ -1,36 +1,36 @@
 {
-  "generatedAt": "2026-06-19T18:57:17.070Z",
+  "generatedAt": "2026-06-19T19:36:38.717Z",
   "source": "yaml-yugi:https://raw.githubusercontent.com/DawnbrandBots/yaml-yugi/aggregate/cards.json",
   "shards": [
     {
       "file": "index.fusion.json",
       "count": 477,
-      "bytes": 371612,
-      "sha256": "6225b8ca467a2b6b"
+      "bytes": 379244,
+      "sha256": "c69c63cf9d904c2c"
     },
     {
       "file": "index.synchro.json",
       "count": 454,
-      "bytes": 359323,
-      "sha256": "82095ac96a89033c"
+      "bytes": 366587,
+      "sha256": "6dc87bb923a52b27"
     },
     {
       "file": "index.xyz.json",
       "count": 522,
-      "bytes": 354299,
-      "sha256": "85dbe079f6da5490"
+      "bytes": 362651,
+      "sha256": "8aef9a730d6fe0ec"
     },
     {
       "file": "index.link.json",
       "count": 407,
-      "bytes": 287753,
-      "sha256": "4e4e840882f644a0"
+      "bytes": 294265,
+      "sha256": "b7c8875a63cf83bb"
     },
     {
       "file": "input-pool.json",
       "count": 8403,
-      "bytes": 3232155,
-      "sha256": "85b93dfdbe5b3e00"
+      "bytes": 3366603,
+      "sha256": "a6adfd19cadb78c0"
     }
   ]
 }

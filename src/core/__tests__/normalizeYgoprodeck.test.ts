@@ -81,4 +81,18 @@ describe('normalizeYgoprodeck', () => {
     expect(ygoprodeckMaterials({ desc: '2 Level 4 monsters\nOnce per turn...' })).toBe('2 Level 4 monsters');
     expect(ygoprodeckMaterials({})).toBe('');
   });
+
+  it('extracts Pendulum materials from the monster-effect section', () => {
+    const desc = '[ Pendulum Effect ]\n...\n----\n[ Monster Effect ]\n2 Level 4 monsters\nOnce per turn...';
+    expect(ygoprodeckMaterials({ desc })).toBe('2 Level 4 monsters');
+  });
+
+  it('flags OCG-only cards from misc_info.formats', () => {
+    const ocg = map({ id: 9, name: 'OCG only', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4, misc_info: [{ formats: ['OCG'] }] })!;
+    expect(ocg.ocgOnly).toBe(true);
+    const both = map({ id: 10, name: 'Both', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4, misc_info: [{ formats: ['TCG', 'OCG'] }] })!;
+    expect(both.ocgOnly).toBe(false);
+    const noMisc = map({ id: 11, name: 'No misc', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4 })!;
+    expect(noMisc.ocgOnly).toBe(false);
+  });
 });

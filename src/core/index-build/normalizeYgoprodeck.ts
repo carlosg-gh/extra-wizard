@@ -2,6 +2,7 @@ import type { Attribute, LinkArrow, SummonType } from '../domain/enums';
 import { ATTRIBUTES } from '../domain/enums';
 import type { Card } from '../domain/types';
 import { FUSION_SUBSTITUTE_IDS } from '../parser/lexicon';
+import { materialLineFromText } from './materialLine';
 
 /** The subset of a YGOPRODeck `cardinfo.php` record this project consumes. */
 export interface YgoprodeckRaw {
@@ -23,6 +24,8 @@ export interface YgoprodeckRaw {
   scale?: number | null;
   /** YGOPRODeck exposes a single archetype string (vs yaml-yugi's multi-value series). */
   archetype?: string;
+  /** Present when the bulk request uses `?misc=yes`. */
+  misc_info?: Array<{ formats?: string[]; tcg_date?: string; ocg_date?: string }>;
 }
 
 const LINK_MARKER_MAP: Record<string, LinkArrow> = {
@@ -38,6 +41,16 @@ const LINK_MARKER_MAP: Record<string, LinkArrow> = {
 
 function num(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
+/** Released in OCG but never in TCG, from `misc_info` (needs `?misc=yes`). */
+function deriveOcgOnly(raw: YgoprodeckRaw): boolean {
+  const misc = Array.isArray(raw.misc_info) ? raw.misc_info[0] : undefined;
+  if (!misc) return false;
+  if (Array.isArray(misc.formats)) {
+    return misc.formats.includes('OCG') && !misc.formats.includes('TCG');
+  }
+  return Boolean(misc.ocg_date) && !misc.tcg_date;
 }
 
 /**
@@ -72,7 +85,6 @@ export function normalizeYgoprodeckCard(raw: YgoprodeckRaw): Card | null {
   const isToken = frameType === 'token' || /\bToken\b/.test(type);
   const isPendulum = frameType.includes('pendulum') || /\bPendulum\b/.test(type);
   const isTuner = /\bTuner\b/.test(type);
-  // Everything that isn't explicitly Normal (and isn't a Token) is an Effect monster.
   const isEffect = !/\bNormal\b/i.test(type) && !isToken;
 
   let level: number | null = null;
@@ -113,13 +125,14 @@ export function normalizeYgoprodeckCard(raw: YgoprodeckRaw): Card | null {
     isEffect,
     isToken,
     isPendulum,
+    ocgOnly: deriveOcgOnly(raw),
     isFusionSubstitute: FUSION_SUBSTITUTE_IDS.has(id),
     summonType,
     imageId: id,
   };
 }
 
-/** Material text = first line of the card description (matches yaml-yugi behavior). */
+/** Material text = the summon-material line (Pendulum-aware; see materialLineFromText). */
 export function ygoprodeckMaterials(raw: YgoprodeckRaw): string {
-  return (raw.desc ?? '').split('\n')[0]?.trim() ?? '';
+  return materialLineFromText(raw.desc);
 }

@@ -64,6 +64,13 @@ test('loads data, adds two Level-4 materials, and shows results', async ({ page 
   await page.getByRole('tab', { name: /use all/i }).click();
   await expect(page.getByRole('tab', { name: /use all/i })).toHaveAttribute('aria-selected', 'true');
 
+  // Clicking a result opens the detail modal; Escape closes it. (The live YGOPRODeck
+  // detail fetch may or may not resolve in CI; the modal renders from index data regardless.)
+  await page.locator('.rc').first().click();
+  await expect(page.locator('.modal')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal')).toHaveCount(0);
+
   // Fail only on genuine app errors (ignore unreachable card images in CI).
   const appErrors = logs.filter(
     (l) =>

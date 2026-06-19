@@ -1,0 +1,107 @@
+import { useEffect, useRef, useState } from 'react';
+import type { ResultMonster } from '../../data/types';
+import { cardMetaLine } from '../../lib/cardMeta';
+import { cardImageUrl } from '../../lib/images';
+import { useCardDetail } from '../../lib/useCardDetail';
+
+const ABILITY_TAGS = new Set(['Tuner', 'Flip', 'Gemini', 'Spirit', 'Union', 'Toon', 'Pendulum']);
+
+export function CardDetailModal({ monster: m, onClose }: { monster: ResultMonster; onClose: () => void }) {
+  const { detail, loading, error } = useCardDetail(m.imageId);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const [imgOk, setImgOk] = useState(true);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const abilities = m.typeLineTags.filter((t) => ABILITY_TAGS.has(t));
+  const stats = [m.atk != null ? `ATK ${m.atk}` : null, m.def != null ? `DEF ${m.def}` : null]
+    .filter(Boolean)
+    .join(' / ');
+  const cardmarket = `https://www.cardmarket.com/en/YuGiOh/Products/Search?searchString=${encodeURIComponent(m.name)}`;
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={m.name} onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button ref={closeRef} type="button" className="modal__close" onClick={onClose} aria-label="Close">
+          ×
+        </button>
+        <div className="modal__grid">
+          <div className="modal__art">
+            {imgOk && m.imageId ? (
+              <img src={cardImageUrl(m.imageId, 'full')} alt={m.name} onError={() => setImgOk(false)} />
+            ) : (
+              <div className="rc__art-fallback">{m.name}</div>
+            )}
+          </div>
+
+          <div className="modal__info">
+            <h2 className="modal__name">{m.name}</h2>
+            <div className="modal__tags">
+              <span className={`tag tag--${m.summonType.toLowerCase()}`}>{m.summonType}</span>
+              {abilities.map((a) => (
+                <span key={a} className="tag tag--ability">
+                  {a}
+                </span>
+              ))}
+              {m.ocgOnly && <span className="tag tag--ocg">OCG only</span>}
+              {m.parseStatus !== 'exact' && <span className="badge badge--approx">approx</span>}
+            </div>
+
+            <div className="modal__meta">
+              {cardMetaLine(m)}
+              {stats ? ` · ${stats}` : ''}
+            </div>
+
+            <p className="modal__mats">
+              <strong>Materials:</strong> {m.materialsRaw || '—'}
+            </p>
+
+            {loading && <p className="muted small">Loading details…</p>}
+            {error && !detail && <p className="muted small">Live details unavailable.</p>}
+
+            {detail && (
+              <>
+                {detail.description && <p className="modal__text">{detail.description}</p>}
+                {(detail.prices.cardmarket != null || detail.prices.tcgplayer != null) && (
+                  <p className="modal__price">
+                    {detail.prices.cardmarket != null && <span>Cardmarket €{detail.prices.cardmarket.toFixed(2)}</span>}
+                    {detail.prices.tcgplayer != null && (
+                      <span>
+                        {detail.prices.cardmarket != null ? ' · ' : ''}TCGplayer ${detail.prices.tcgplayer.toFixed(2)}
+                      </span>
+                    )}
+                  </p>
+                )}
+                {detail.sets.length > 0 && (
+                  <div className="modal__sets">
+                    <h3>Printings ({detail.sets.length})</h3>
+                    <ul>
+                      {detail.sets.map((s, i) => (
+                        <li key={`${s.code}-${i}`}>
+                          <span className="modal__set-code">{s.code}</span>
+                          <span className="modal__set-name">{s.name}</span>
+                          <span className="modal__set-rarity">{s.rarity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+
+            <a className="modal__cm-link" href={cardmarket} target="_blank" rel="noopener noreferrer">
+              View on Cardmarket ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

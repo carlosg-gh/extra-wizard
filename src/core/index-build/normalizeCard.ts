@@ -2,6 +2,7 @@ import type { Attribute, LinkArrow, SummonType } from '../domain/enums';
 import { ATTRIBUTES } from '../domain/enums';
 import type { Card } from '../domain/types';
 import { FUSION_SUBSTITUTE_IDS } from '../parser/lexicon';
+import { materialLineFromText } from './materialLine';
 
 /** The subset of a yaml-yugi card record this project consumes. */
 export interface RawCard {
@@ -117,6 +118,7 @@ export function normalizeCard(raw: RawCard): Card | null {
     isEffect: rest.includes('Effect'),
     isToken: rest.includes('Token'),
     isPendulum: rest.includes('Pendulum'),
+    ocgOnly: false, // yaml-yugi fallback path; the OCG ribbon is accurate on the YGOPRODeck dataset
     isFusionSubstitute: FUSION_SUBSTITUTE_IDS.has(id),
     summonType,
     imageId: id,
@@ -126,6 +128,5 @@ export function normalizeCard(raw: RawCard): Card | null {
 /** The material string to parse: prefer the dedicated field, else the first line of effect text. */
 export function pickMaterials(raw: RawCard): string {
   if (typeof raw.materials === 'string' && raw.materials.trim()) return raw.materials.trim();
-  const en = enStr(raw.text);
-  return en.split('\n')[0]?.trim() ?? '';
+  return materialLineFromText(enStr(raw.text));
 }
