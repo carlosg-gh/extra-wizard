@@ -31,7 +31,9 @@ test('loads data, adds two Level-4 materials, and shows results', async ({ page 
   });
   page.on('pageerror', (err) => appErrors.push(err.message));
 
-  await page.goto('/');
+  // Use a relative path: baseURL includes the Pages base (/extra-wizard/), and
+  // "/" would resolve to the server root (not served under the base).
+  await page.goto('./');
 
   // Card data finished loading (status line reports the target count).
   await expect(page.locator('.status')).toContainText('Extra Deck targets', { timeout: 30_000 });
