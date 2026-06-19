@@ -29,6 +29,17 @@ pnpm dev            # http://localhost:5173
 
 Other commands: `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`.
 
+## Deployment (GitHub Pages)
+
+Pushing to `main` triggers [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml),
+which builds the app and publishes `dist/` to GitHub Pages.
+
+**One-time setup:** in the repo, go to **Settings → Pages → Build and deployment → Source:
+GitHub Actions**.
+
+The production build is served from `/extra-wizard/` (a project Pages path). For a custom
+domain or a user/org page served at the root, build with `VITE_BASE=/`.
+
 ## Tech
 
 React + TypeScript + Vite, fully client-side (static hosting). Pure domain logic lives in
