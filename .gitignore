@@ -6,6 +6,13 @@ dist-ssr
 *.log
 .DS_Store
 coverage
+
+# Playwright
+test-results
+playwright-report
+blob-report
+playwright/.cache
+e2e-smoke.png
 .idea
 .vscode/*
 !.vscode/extensions.json
