@@ -1,4 +1,4 @@
-import type { MatchResult, ResultMonster } from '../../data/types';
+import type { MatchResult } from '../../data/types';
 import { ResultCard } from './ResultCard';
 
 export function ResultsGrid({
@@ -6,7 +6,7 @@ export function ResultsGrid({
   onSelect,
 }: {
   results: MatchResult[];
-  onSelect: (m: ResultMonster) => void;
+  onSelect: (r: MatchResult) => void;
 }) {
   return (
     <div className="grid">

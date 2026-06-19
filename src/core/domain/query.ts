@@ -51,8 +51,7 @@ export interface MatchContext {
 }
 
 /** Client-side, post-query facet filters applied to results. */
-export interface ResultFilters {
-  summonType?: SummonType[];
+export interface ResultFilters {  summonType?: SummonType[];
   archetype?: string[];
   attribute?: string[];
   race?: string[];
@@ -63,4 +62,31 @@ export interface ResultFilters {
   atk?: { min?: number; max?: number };
   def?: { min?: number; max?: number };
   parseStatus?: ParseStatus[];
+}
+
+/**
+ * A node in a bridge-mode build chain. A summon node has `monsterId` set and its
+ * `children` are the materials it consumed (base-card leaves or sub-summons);
+ * a base-card leaf has `monsterId: null` and no children.
+ */
+export interface BuildStep {
+  monsterId: string | null;
+  name: string;
+  summonType: SummonType | null;
+  materialsRaw?: string;
+  children: BuildStep[];
+}
+
+export interface BridgeResultItem {
+  monsterId: string;
+  summonType: SummonType;
+  /** Total summons in the chain (1 = direct, ≥2 = reached via intermediaries). */
+  steps: number;
+  parseStatus: ParseStatus;
+  chain: BuildStep;
+}
+
+export interface BridgeQueryResult {
+  items: BridgeResultItem[];
+  inputCount: number;
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MatchResult, ResultMonster } from '../../data/types';
+import type { MatchResult } from '../../data/types';
 import { levelRankLabel } from '../../lib/cardMeta';
 import { cardImageUrl } from '../../lib/images';
 
@@ -8,10 +8,11 @@ export function ResultCard({
   onSelect,
 }: {
   result: MatchResult;
-  onSelect: (m: ResultMonster) => void;
+  onSelect: (r: MatchResult) => void;
 }) {
   const { monster: m } = result;
   const [imgOk, setImgOk] = useState(true);
+  const bridged = result.steps != null && result.steps > 1;
 
   const statLine = [levelRankLabel(m), m.attribute ?? undefined, m.race].filter(Boolean).join(' · ');
 
@@ -21,11 +22,11 @@ export function ResultCard({
       role="button"
       tabIndex={0}
       aria-label={`${m.name} details`}
-      onClick={() => onSelect(m)}
+      onClick={() => onSelect(result)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onSelect(m);
+          onSelect(result);
         }
       }}
     >
@@ -44,6 +45,14 @@ export function ResultCard({
         </h3>
         <div className="rc__tags">
           <span className={`tag tag--${m.summonType.toLowerCase()}`}>{m.summonType}</span>
+          {bridged && (
+            <span
+              className="badge badge--bridge"
+              title={`Reached through a chain of ${result.steps} summons — open for the full build.`}
+            >
+              {result.steps}-step
+            </span>
+          )}
           {m.parseStatus !== 'exact' && (
             <span
               className="badge badge--approx"

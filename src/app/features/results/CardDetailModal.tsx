@@ -1,12 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ResultMonster } from '../../data/types';
+import type { BuildStep } from '@core';
+import type { MatchResult } from '../../data/types';
 import { cardMetaLine } from '../../lib/cardMeta';
 import { cardImageUrl } from '../../lib/images';
 import { useCardDetail } from '../../lib/useCardDetail';
 
 const ABILITY_TAGS = new Set(['Tuner', 'Flip', 'Gemini', 'Spirit', 'Union', 'Toon', 'Pendulum']);
 
-export function CardDetailModal({ monster: m, onClose }: { monster: ResultMonster; onClose: () => void }) {
+/** Renders a build-chain node: a base-card leaf, or a summon with its materials. */
+function ChainNode({ step }: { step: BuildStep }) {
+  const isSummon = step.monsterId != null;
+  return (
+    <li className={`chain-node ${isSummon ? 'chain-node--summon' : 'chain-node--leaf'}`}>
+      <span className="chain-node__head">
+        {isSummon && step.summonType && (
+          <span className={`tag tag--${step.summonType.toLowerCase()}`}>{step.summonType}</span>
+        )}
+        <span className="chain-node__name">{step.name}</span>
+      </span>
+      {isSummon && step.materialsRaw && <span className="chain-node__mats">{step.materialsRaw}</span>}
+      {step.children.length > 0 && (
+        <ul className="chain-node__children">
+          {step.children.map((c, i) => (
+            <ChainNode key={`${c.monsterId ?? c.name}-${i}`} step={c} />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+export function CardDetailModal({ result, onClose }: { result: MatchResult; onClose: () => void }) {
+  const m = result.monster;
   const { detail, loading, error } = useCardDetail(m.imageId);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [imgOk, setImgOk] = useState(true);
@@ -51,6 +76,9 @@ export function CardDetailModal({ monster: m, onClose }: { monster: ResultMonste
                 </span>
               ))}
               {m.ocgOnly && <span className="tag tag--ocg">OCG only</span>}
+              {result.steps != null && result.steps > 1 && (
+                <span className="badge badge--bridge">{result.steps}-step chain</span>
+              )}
               {m.parseStatus !== 'exact' && <span className="badge badge--approx">approx</span>}
             </div>
 
@@ -62,6 +90,20 @@ export function CardDetailModal({ monster: m, onClose }: { monster: ResultMonste
             <p className="modal__mats">
               <strong>Materials:</strong> {m.materialsRaw || '—'}
             </p>
+
+            {result.chain && result.steps != null && result.steps > 1 && (
+              <div className="modal__chain">
+                <h3>Build chain ({result.steps} summons)</h3>
+                <ul className="chain-root">
+                  {result.chain.children.map((c, i) => (
+                    <ChainNode key={`${c.monsterId ?? c.name}-${i}`} step={c} />
+                  ))}
+                </ul>
+                <p className="muted xsmall">
+                  Summon order is bottom-up: build the nested materials first, then combine.
+                </p>
+              </div>
+            )}
 
             {loading && <p className="muted small">Loading details…</p>}
             {error && !detail && <p className="muted small">Live details unavailable.</p>}

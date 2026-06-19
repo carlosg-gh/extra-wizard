@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink';
-import { runQuery, type Card, type ExtraDeckMonster, type MatchMode } from '@core';
+import { runBridgeQuery, runQuery, type Card, type ExtraDeckMonster, type MatchMode } from '@core';
 import type { MatchResult, ResultMonster } from '../data/types';
 
 const SHARDS = ['fusion', 'synchro', 'xyz', 'link'] as const;
@@ -40,14 +40,28 @@ class MatchEngineWorker {
     return this.monsters.length;
   }
 
-  async query(selected: Card[], mode: MatchMode, includeUnparsed: boolean): Promise<MatchResult[]> {
+  async query(
+    selected: Card[],
+    mode: MatchMode,
+    includeUnparsed: boolean,
+    bridge = false,
+  ): Promise<MatchResult[]> {
     await this.ready;
     const cardsById = new Map<string, Card>();
     for (const c of selected) cardsById.set(c.id, c);
     const cardIds = selected.map((c) => c.id);
+    const ctx = { monsters: this.monsters, cardsById };
 
-    const result = runQuery({ cardIds, mode }, { monsters: this.monsters, cardsById }, { includeUnparsed });
+    if (bridge) {
+      const result = runBridgeQuery({ cardIds, mode }, ctx);
+      return result.items.map((it) => ({
+        monster: stripPaths(this.byId.get(it.monsterId) as ExtraDeckMonster),
+        steps: it.steps,
+        chain: it.chain,
+      }));
+    }
 
+    const result = runQuery({ cardIds, mode }, ctx, { includeUnparsed });
     return result.items.map((it) => ({
       monster: stripPaths(this.byId.get(it.monsterId) as ExtraDeckMonster),
     }));
