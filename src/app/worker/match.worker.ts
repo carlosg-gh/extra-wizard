@@ -50,7 +50,6 @@ class MatchEngineWorker {
 
     return result.items.map((it) => ({
       monster: stripPaths(this.byId.get(it.monsterId) as ExtraDeckMonster),
-      explanation: it.explanation,
     }));
   }
 }

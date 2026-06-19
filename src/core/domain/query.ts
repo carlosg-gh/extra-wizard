@@ -56,6 +56,8 @@ export interface ResultFilters {
   archetype?: string[];
   attribute?: string[];
   race?: string[];
+  /** Monster ability tags: Tuner, Flip, Gemini, Spirit, Union, Toon, Pendulum. */
+  ability?: string[];
   levelRank?: { min?: number; max?: number };
   linkRating?: { min?: number; max?: number };
   atk?: { min?: number; max?: number };

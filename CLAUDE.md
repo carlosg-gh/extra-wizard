@@ -50,19 +50,22 @@ so an ocgcore-wasm adapter or curated overrides can be added later without a rew
 
 ## Data pipeline
 
-- **Source:** `yaml-yugi` aggregated `cards.json` (`src/pipeline/sources/yamlYugi.ts`
-  tries GitHub Pages → jsDelivr → `raw.githubusercontent` `aggregate` branch). The
-  pre-extracted **`materials`** field is the primary input; when absent (common for some
-  Link monsters) we fall back to the **first line of `text.en`** (`pickMaterials`).
-- **Skipped:** non-monsters, Rush Duel cards (`materials` is an object), records missing
-  type line / id.
+- **Sources (tried in order, `src/pipeline/sources/`, each implements `CardSource`):**
+  **YGOPRODeck** primary (`ygoprodeck.ts` → bulk `db.ygoprodeck.com/.../cardinfo.php`; most
+  complete/current; ability types like Toon/Tuner/Flip live in its `type` string) → **yaml-yugi**
+  fallback (`yamlYugi.ts`, raw.githubusercontent aggregate). YGOPRODeck is reachable from CI but
+  **blocked from the dev sandbox** (egress allowlist), so locally the pipeline falls back to
+  yaml-yugi. Pure normalizers live in `src/core/index-build/normalize{Card,Ygoprodeck}.ts`.
+  **Materials** = first line of the card text (yaml-yugi `materials`/`text.en`; YGOPRODeck `desc`).
+- **Skipped:** spells/traps/skills, Rush Duel cards, records missing type/id/name.
 - **Emitted to `public/data/`** (committed to the repo so fresh clones work offline):
   `index.{fusion,synchro,xyz,link}.json` (parsed targets), `input-pool.json` (every
   monster usable as a material, for autocomplete + matching), `meta.json`, `coverage.json`,
   `manifest.json` (shard hashes).
-- **Refresh:** `.github/workflows/refresh-data.yml` re-runs the pipeline on a schedule and
-  opens a PR with the coverage delta. The pipeline exits non-zero if parse coverage drops
-  below 85% (regression guard).
+- **Refresh:** `refresh-data.yml` runs **daily** (+ manual) and opens a PR with refreshed data
+  + the coverage delta; `deploy.yml` also runs `data:refresh` (non-fatal) so each deploy
+  publishes fresh data when YGOPRODeck is reachable. Pipeline exits non-zero if parse coverage
+  drops below 85% (regression guard).
 - **Images:** thumbnails come from YGOPRODeck (`images.ygoprodeck.com/.../cards_small/{password}.jpg`,
   see `src/app/lib/images.ts`). YGOPRODeck asks consumers **not to continuously hotlink** —
   for production, route through an edge proxy / re-host. The grid degrades gracefully
