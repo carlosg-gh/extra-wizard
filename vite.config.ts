@@ -6,8 +6,10 @@ import { defineConfig } from 'vite';
 // VITE_BASE (e.g. "/" for a user/org page or a custom domain).
 const base = process.env.VITE_BASE ?? '/extra-wizard/';
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? base : '/',
+// `vite build` and `vite preview` must use the deployed base so built asset
+// URLs resolve; only the dev server (`vite`) serves from the root.
+export default defineConfig(({ command, isPreview }) => ({
+  base: command === 'build' || isPreview ? base : '/',
   plugins: [react()],
   resolve: {
     alias: {
