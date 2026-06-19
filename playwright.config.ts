@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4173;
+const BASE_PATH = '/extra-wizard/';
 
 // Smoke-tests the *production* build served under the GitHub Pages base path,
 // so base-path regressions (which would break the deployed site) are caught.
@@ -9,14 +10,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: 'list',
   use: {
-    baseURL: `http://localhost:${PORT}/extra-wizard/`,
+    // Host only — the spec navigates to the absolute base path explicitly.
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
   },
   webServer: {
     command: `pnpm build:app && pnpm exec vite preview --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}/extra-wizard/`,
+    url: `http://localhost:${PORT}${BASE_PATH}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

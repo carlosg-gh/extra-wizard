@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
 
+const BASE_PATH = '/extra-wizard/';
+
 interface PoolCard {
   name: string;
   level: number | null;
@@ -19,24 +21,30 @@ function twoLevel4Names(): [string, string] {
 }
 
 test('loads data, adds two Level-4 materials, and shows results', async ({ page }) => {
-  const appErrors: string[] = [];
-  page.on('console', (msg) => {
-    // Ignore image/resource noise (YGOPRODeck images may be unreachable in CI).
-    if (
-      msg.type() === 'error' &&
-      !/ygoprodeck|favicon|Failed to load resource|net::|404/i.test(msg.text())
-    ) {
-      appErrors.push(msg.text());
-    }
-  });
-  page.on('pageerror', (err) => appErrors.push(err.message));
+  const logs: string[] = [];
+  page.on('console', (m) => logs.push(`[console.${m.type()}] ${m.text()}`));
+  page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
+  page.on('requestfailed', (r) =>
+    logs.push(`[requestfailed] ${r.url()} :: ${r.failure()?.errorText ?? ''}`),
+  );
 
-  // Use a relative path: baseURL includes the Pages base (/extra-wizard/), and
-  // "/" would resolve to the server root (not served under the base).
-  await page.goto('./');
+  const resp = await page.goto(BASE_PATH, { waitUntil: 'load' });
+  console.log(`navigated to ${page.url()} (HTTP ${resp?.status()})`);
 
-  // Card data finished loading (status line reports the target count).
-  await expect(page.locator('.status')).toContainText('Extra Deck targets', { timeout: 30_000 });
+  const status = page.locator('.status');
+  try {
+    await expect(status).toBeVisible({ timeout: 20_000 });
+  } catch (err) {
+    // Diagnostics: surface why the app didn't mount (logs aren't a Pages artifact).
+    const rootHtml = await page
+      .locator('#root')
+      .innerHTML()
+      .catch(() => '<no #root element>');
+    console.log('--- #root innerHTML (first 2000 chars) ---\n' + rootHtml.slice(0, 2000));
+    console.log('--- page console / network ---\n' + (logs.join('\n') || '(none captured)'));
+    throw err;
+  }
+  await expect(status).toContainText('Extra Deck targets', { timeout: 20_000 });
 
   const [a, b] = twoLevel4Names();
   const search = page.getByPlaceholder(/search a monster/i);
@@ -53,10 +61,15 @@ test('loads data, adds two Level-4 materials, and shows results', async ({ page 
   await expect(page.locator('.rc').first()).toBeVisible({ timeout: 15_000 });
   expect(await page.locator('.rc').count()).toBeGreaterThan(0);
 
-  // Mode toggle is interactive.
   await page.getByRole('tab', { name: /use all/i }).click();
   await expect(page.getByRole('tab', { name: /use all/i })).toHaveAttribute('aria-selected', 'true');
 
-  await page.screenshot({ path: 'e2e-smoke.png' });
-  expect(appErrors, `unexpected console/page errors:\n${appErrors.join('\n')}`).toEqual([]);
+  // Fail only on genuine app errors (ignore unreachable card images in CI).
+  const appErrors = logs.filter(
+    (l) =>
+      l.startsWith('[pageerror]') ||
+      (l.startsWith('[console.error]') &&
+        !/ygoprodeck|favicon|Failed to load resource|net::|status of 4/i.test(l)),
+  );
+  expect(appErrors, appErrors.join('\n')).toEqual([]);
 });
