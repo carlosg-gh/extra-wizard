@@ -70,15 +70,20 @@ empty decks + zero draws.
 2. **Duel driver + worker verifier:** `enumerateSummonable()` (build board → MP1 → read
    `special_summons`); worker runs the parser, primes ocgcore with the candidate ids, filters.
 3. **Node provider + build-time `cards.cdb` extraction** → compact code-keyed JSON.
-4. **Browser provider:** lazy wasm import in the worker; fetch+cache card JSON + Lua.
-   - ⚠️ `createCore` resolution differs from Node: there's no `createRequire`, and the
-     `exports` map blocks the deep specifier, so the browser path needs a Vite
-     `resolve.alias` (e.g. `@n1xx1/ocgcore-wasm` → `dist/index.js`) or a resolver
-     plugin. Verify with a real Vite worker build (Stage 7).
-   - ⚠️ The **sync** core calls readers synchronously, so the browser provider's
-     `prepare()` must fetch the card JSON + the system scripts (`constant`/`utility`/
-     all `proc_*.lua`) + the per-code candidate/material scripts into memory *first*,
-     then serve `readCard`/`readScript` from that cache.
+4. **Browser provider (done, flag-off):** `ocgcoreBrowserProvider.ts` + the worker
+   verifier wiring (`match.worker.ts`). Resolved findings:
+   - `createCore` is reached via a Vite `resolve.alias` (`@n1xx1/ocgcore-wasm` →
+     `dist/index.js`) — no `createRequire` in-browser, and the `exports` map blocks
+     the deep specifier. A flag-on `vite build` bundles the provider + sync glue chunks.
+   - The **sync** core calls readers synchronously, so `prepare()` fetches the card
+     JSON + the system scripts + the per-code candidate/material scripts into memory
+     first, then serves `readCard`/`readScript` from that cache.
+   - **Runtime-verified in headless Chromium:** the wasm loads/instantiates and
+     enumeration is correct (two Level-4s ⇒ Utopia/Abyss Dweller confirmed, a Rank-5 +
+     a Tuner-Synchro denied — matching Node). Script source is configurable
+     (`scriptBase`); the default pinned CardScripts CDN couldn't be exercised in the
+     sandbox (its TLS is MITM'd and Chromium rejects the cert), so the CDN path itself
+     is the one bit still pending a real-network check.
 5. **Asset pipeline + AGPL/attribution** (`--with-ocgcore`, `THIRD_PARTY_LICENSES.md`).
 6. **Parser permissiveness pass** (raise the candidate-recall ceiling).
 7. **Validation harness + flip:** parser-vs-ocgcore equivalence (zero false positives, recall

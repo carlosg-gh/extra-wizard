@@ -43,8 +43,15 @@ interface OcgModule {
   OcgProcessResult: { END: number; WAITING: number; CONTINUE: number };
 }
 
-export function createBrowserProvider(): OcgResourceProvider {
+export interface BrowserProviderOptions {
+  /** Base URL for Lua scripts (root system scripts + `official/c<code>.lua`).
+   *  Defaults to the pinned CardScripts CDN; override to self-host. */
+  scriptBase?: string;
+}
+
+export function createBrowserProvider(opts: BrowserProviderOptions = {}): OcgResourceProvider {
   const base = import.meta.env.BASE_URL || '/';
+  const scriptBase = opts.scriptBase ?? SCRIPT_CDN;
   let cards: Map<number, OcgCardStruct> | null = null;
   const scripts = new Map<string, string | null>();
 
@@ -64,7 +71,7 @@ export function createBrowserProvider(): OcgResourceProvider {
     if (scripts.has(name)) return;
     const path = /c\d+\.lua/.test(name) ? `official/${name}` : name;
     try {
-      const r = await fetch(`${SCRIPT_CDN}/${path}`);
+      const r = await fetch(`${scriptBase}/${path}`);
       scripts.set(name, r.ok ? await r.text() : null);
     } catch {
       scripts.set(name, null);
