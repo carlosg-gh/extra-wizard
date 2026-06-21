@@ -17,3 +17,17 @@ export type { ISummonEngine } from './matching/ISummonEngine';
 export { cardSatisfiesConstraint } from './matching/constraintEval';
 export { matchGroup } from './matching/groupMatch';
 export { chainUsesBanned } from './matching/banWalk';
+
+// ocgcore-wasm engine (feature-flagged verifier; OFF by default). The seam types are
+// exported so app/pipeline providers can implement them; no JSR package is imported here.
+export { OcgcoreSummonEngine, OCGCORE_ENABLED } from './matching/engines/ocgcore/ocgcoreEngine';
+export { enumerateSummonable } from './matching/engines/ocgcore/duelDriver';
+export { cardCode, extraDeckCodesFrom } from './matching/engines/ocgcore/passcode';
+export type {
+  OcgCardStruct,
+  OcgConstants,
+  OcgCoreLike,
+  OcgResourceProvider,
+  OcgRuntime,
+  PrimeRequest,
+} from './matching/engines/ocgcore/types';

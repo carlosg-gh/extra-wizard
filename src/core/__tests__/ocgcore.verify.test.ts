@@ -1,0 +1,55 @@
+import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { OcgcoreSummonEngine } from '../matching/engines/ocgcore/ocgcoreEngine';
+import type { MaterialInstance } from '../domain/query';
+import { mkCard } from './helpers';
+
+// Integration test for the real ocgcore engine. Needs the vendored upstream assets
+// (`pnpm vendor:ocgcore`) AND node:sqlite (`--experimental-sqlite`). Skips otherwise,
+// so plain `pnpm test` / CI without the assets stays green.
+const VENDOR = join(process.cwd(), 'vendor', 'ocgcore');
+const CDB = join(VENDOR, 'BabelCDB', 'cards.cdb');
+const SCRIPTS = join(VENDOR, 'CardScripts');
+
+function sqliteAvailable(): boolean {
+  try {
+    createRequire(import.meta.url)('node:sqlite');
+    return true;
+  } catch {
+    return false;
+  }
+}
+const RUN = sqliteAvailable() && existsSync(CDB) && existsSync(join(SCRIPTS, 'utility.lua'));
+
+const mat = (id: string, name: string): MaterialInstance => ({ instanceId: id, card: mkCard({ id, name }) });
+// Dynamic import keeps node:sqlite out of the module graph when the suite is skipped.
+const newEngine = async () => {
+  const { createNodeProvider } = await import('../../pipeline/ocgcore/nodeProvider');
+  return new OcgcoreSummonEngine(createNodeProvider({ cdbPaths: [CDB], scriptRoot: SCRIPTS }));
+};
+
+(RUN ? describe : describe.skip)(
+  'ocgcore verifier — integration (needs `pnpm vendor:ocgcore` + --experimental-sqlite)',
+  () => {
+    it('confirms candidates whose materials are present and denies the rest', async () => {
+      const engine = await newEngine();
+      // Board: two Level-4 monsters.
+      const materials = [mat('69140098', 'Gemini Elf'), mat('91731841', 'Gem-Knight Garnet')];
+      await engine.prime(materials, [84013237, 21044178, 29669359, 44508094]);
+      expect(engine.confirms('84013237')).toBe(true); // Number 39: Utopia — "2 Level 4 monsters"
+      expect(engine.confirms('21044178')).toBe(true); // Abyss Dweller — Rank 4
+      expect(engine.confirms('29669359')).toBe(false); // Number 61: Volcasaurus — Rank 5
+      expect(engine.confirms('44508094')).toBe(false); // Stardust Dragon — needs a Tuner
+    });
+
+    it('denies everything from a board with no valid materials', async () => {
+      const engine = await newEngine();
+      // A single Level-7 can't make a Rank-4 Xyz (needs two Level-4s).
+      await engine.prime([mat('46986414', 'Dark Magician')], [84013237, 21044178]);
+      expect(engine.confirms('84013237')).toBe(false);
+      expect(engine.confirms('21044178')).toBe(false);
+    });
+  },
+);
