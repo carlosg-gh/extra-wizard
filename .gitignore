@@ -20,3 +20,10 @@ e2e-smoke.png
 # Pre-fetched card images are large and optional (built via `data:refresh --with-images`)
 public/img/*
 !public/img/.gitkeep
+
+# ocgcore-wasm engine: vendored upstream assets (BabelCDB + CardScripts), git-ignored.
+# Cloned on demand via `pnpm vendor:ocgcore`; never committed (tens of MB, AGPL/own licenses).
+vendor/
+# Built ocgcore card data + scripts (emitted by `data:refresh --with-ocgcore`)
+public/data/ocgcore/*
+!public/data/ocgcore/.gitkeep
