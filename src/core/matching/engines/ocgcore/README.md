@@ -85,6 +85,12 @@ empty decks + zero draws.
      sandbox (its TLS is MITM'd and Chromium rejects the cert), so the CDN path itself
      is the one bit still pending a real-network check.
 5. **Asset pipeline + AGPL/attribution** (`--with-ocgcore`, `THIRD_PARTY_LICENSES.md`).
-6. **Parser permissiveness pass** (raise the candidate-recall ceiling).
+6. **Parser permissiveness pass** — *investigated, found unnecessary.* Coverage is
+   already 1960 exact / 209 approximate / **3 unparsed** (99.9% parsed); the 3 unparsed
+   (Vaalmonica Links, Clara & Rushka) carry "Cannot be Link Summoned" and ocgcore
+   confirms they are NOT summonable from materials, so the parser correctly hides them.
+   There's no recall headroom; widening now would only add false-positives that regress
+   the flag-off app. Any future widening should be **coupled to the flip** (so ocgcore
+   prunes the new over-includes), not done parser-only.
 7. **Validation harness + flip:** parser-vs-ocgcore equivalence (zero false positives, recall
    ≥ parser, latency budget) → flip `OCGCORE_ENABLED`.
