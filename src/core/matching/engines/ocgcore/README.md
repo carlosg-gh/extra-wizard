@@ -71,6 +71,14 @@ empty decks + zero draws.
    `special_summons`); worker runs the parser, primes ocgcore with the candidate ids, filters.
 3. **Node provider + build-time `cards.cdb` extraction** → compact code-keyed JSON.
 4. **Browser provider:** lazy wasm import in the worker; fetch+cache card JSON + Lua.
+   - ⚠️ `createCore` resolution differs from Node: there's no `createRequire`, and the
+     `exports` map blocks the deep specifier, so the browser path needs a Vite
+     `resolve.alias` (e.g. `@n1xx1/ocgcore-wasm` → `dist/index.js`) or a resolver
+     plugin. Verify with a real Vite worker build (Stage 7).
+   - ⚠️ The **sync** core calls readers synchronously, so the browser provider's
+     `prepare()` must fetch the card JSON + the system scripts (`constant`/`utility`/
+     all `proc_*.lua`) + the per-code candidate/material scripts into memory *first*,
+     then serve `readCard`/`readScript` from that cache.
 5. **Asset pipeline + AGPL/attribution** (`--with-ocgcore`, `THIRD_PARTY_LICENSES.md`).
 6. **Parser permissiveness pass** (raise the candidate-recall ceiling).
 7. **Validation harness + flip:** parser-vs-ocgcore equivalence (zero false positives, recall

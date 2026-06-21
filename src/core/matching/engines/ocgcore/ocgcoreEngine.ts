@@ -30,6 +30,8 @@ export const OCGCORE_ENABLED = false;
 export class OcgcoreSummonEngine implements ISummonEngine {
   readonly id = 'ocgcore-wasm';
   private summonable: Set<string> | null = null;
+  /** Candidate ids whose card data was missing — ocgcore couldn't judge them. */
+  private unevaluable: Set<string> | null = null;
   private runtime: OcgRuntime | null = null;
 
   constructor(private readonly provider?: OcgResourceProvider) {}
@@ -45,6 +47,11 @@ export class OcgcoreSummonEngine implements ISummonEngine {
     this.runtime ??= await this.provider.createRuntime();
     const materialCodes = materials.map((m) => cardCode(m.card));
     await this.provider.prepare([...materialCodes, ...candidateCodes]);
+    // A candidate with no card data can't be summoned/judged — record it so the
+    // worker keeps the parser's verdict for it instead of dropping it.
+    this.unevaluable = new Set(
+      candidateCodes.filter((c) => this.provider!.readCard(c) == null).map(String),
+    );
     const codes = enumerateSummonable(this.runtime, this.provider, { materialCodes, candidateCodes });
     this.summonable = new Set([...codes].map(String));
   }
@@ -61,6 +68,11 @@ export class OcgcoreSummonEngine implements ISummonEngine {
   /** Verifier API: did ocgcore confirm this monster id is summonable? */
   confirms(id: string): boolean {
     return this.summonable?.has(id) ?? false;
+  }
+
+  /** Verifier API: was this id's card data available to judge (false ⇒ keep parser verdict)? */
+  wasEvaluable(id: string): boolean {
+    return !(this.unevaluable?.has(id) ?? false);
   }
 
   /** The primed set (monster ids), or null before the first `prime`/`primeWith`. */

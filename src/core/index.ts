@@ -17,6 +17,8 @@ export type { ISummonEngine } from './matching/ISummonEngine';
 export { cardSatisfiesConstraint } from './matching/constraintEval';
 export { matchGroup } from './matching/groupMatch';
 export { chainUsesBanned } from './matching/banWalk';
+export { verifyItems } from './matching/verify';
+export type { SummonVerifier } from './matching/verify';
 
 // ocgcore-wasm engine (feature-flagged verifier; OFF by default). The seam types are
 // exported so app/pipeline providers can implement them; no JSR package is imported here.

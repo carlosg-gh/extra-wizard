@@ -54,6 +54,15 @@ const newEngine = async () => {
       expect(engine.confirms('21044178')).toBe(false);
     });
 
+    it('marks a candidate with no card data as un-evaluable (so its parser verdict is kept)', async () => {
+      const engine = await newEngine();
+      const materials = [mat('69140098', 'Gemini Elf'), mat('91731841', 'Gem-Knight Garnet')];
+      await engine.prime(materials, [84013237, 99999999]); // 99999999 isn't in cards.cdb
+      expect(engine.confirms('84013237')).toBe(true);
+      expect(engine.wasEvaluable('84013237')).toBe(true);
+      expect(engine.wasEvaluable('99999999')).toBe(false); // missing data ⇒ keep parser verdict
+    });
+
     it('build-time extraction round-trips card structs through JSON', async () => {
       const { buildOcgcoreAssets } = await import('../../pipeline/ocgcore/buildOcgcoreAssets');
       const { createNodeProvider } = await import('../../pipeline/ocgcore/nodeProvider');
