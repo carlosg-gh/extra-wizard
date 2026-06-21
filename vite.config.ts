@@ -14,6 +14,12 @@ export default defineConfig(({ command, isPreview }) => ({
   resolve: {
     alias: {
       '@core': fileURLToPath(new URL('./src/core', import.meta.url)),
+      // The package root (`mod.js`, `export *`) drops `createCore`'s default export
+      // and the `exports` map blocks the deep specifier — so point the browser build
+      // straight at dist/index.js, which exposes both the default and the named enums.
+      '@n1xx1/ocgcore-wasm': fileURLToPath(
+        new URL('./node_modules/@n1xx1/ocgcore-wasm/dist/index.js', import.meta.url),
+      ),
     },
   },
   worker: {

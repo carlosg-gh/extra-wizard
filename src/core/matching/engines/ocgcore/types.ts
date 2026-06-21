@@ -114,3 +114,10 @@ export interface PrimeRequest {
   materialCodes: number[];
   candidateCodes: number[];
 }
+
+/**
+ * JSON-serializable {@link OcgCardStruct}: `race` (a 64-bit bigint) is a decimal
+ * string. This is the on-disk contract of `public/data/ocgcore/cards.codes.json`
+ * — written by the pipeline, read (and re-hydrated to a bigint) by the browser provider.
+ */
+export type SerializedCardStruct = Omit<OcgCardStruct, 'race'> & { race: string };

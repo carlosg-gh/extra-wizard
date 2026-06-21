@@ -19,6 +19,8 @@ export interface MatchResult {
 export interface QueryAllResult {
   direct: MatchResult[];
   bridge: MatchResult[];
+  /** Which engine produced `direct`: the parser, or ocgcore-verified. */
+  engine?: 'parser-v1' | 'ocgcore-wasm';
 }
 
 /** A selected input card and how many copies the user added. */

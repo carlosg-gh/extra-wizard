@@ -32,4 +32,5 @@ export type {
   OcgResourceProvider,
   OcgRuntime,
   PrimeRequest,
+  SerializedCardStruct,
 } from './matching/engines/ocgcore/types';

@@ -4,26 +4,12 @@
  * reads one small JSON instead of shipping SQLite + the multi-MB .cdb at runtime.
  * Node-only; emitted to `public/data/ocgcore/` (git-ignored, opt-in via `--with-ocgcore`).
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import type { SerializedCardStruct } from '../../core/matching/engines/ocgcore/types';
 import { createNodeProvider } from './nodeProvider';
-
-/** JSON-safe {@link OcgCardStruct}: `race` (a 64-bit bigint) is a decimal string. */
-export interface SerializedCardStruct {
-  code: number;
-  alias: number;
-  setcodes: number[];
-  type: number;
-  level: number;
-  attribute: number;
-  race: string;
-  attack: number;
-  defense: number;
-  lscale: number;
-  rscale: number;
-  link_marker: number;
-}
 
 export interface BuildOcgcoreAssetsOptions {
   /** Passcodes to extract (e.g. every monster in the input pool + Extra Deck). */
@@ -69,6 +55,14 @@ export async function buildOcgcoreAssets(
   const dir = join(opts.outDir, 'ocgcore');
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, 'cards.codes.json'), json);
+
+  // Self-host the (small) sync WASM so the browser provider can fetch it as a plain
+  // asset and pass it as `wasmBinary` — avoiding the package's blocked `lib/*.wasm`
+  // subpath and any bundler wasm-URL guesswork. (Per-card Lua is lazy-fetched from a
+  // pinned CDN at runtime; not bundled here.)
+  const req = createRequire(import.meta.url);
+  const wasmSrc = req.resolve('@n1xx1/ocgcore-wasm').replace(/mod\.js$/, 'lib/ocgcore.sync.wasm');
+  await copyFile(wasmSrc, join(dir, 'ocgcore.sync.wasm'));
   await writeFile(
     join(dir, 'manifest.json'),
     JSON.stringify(
