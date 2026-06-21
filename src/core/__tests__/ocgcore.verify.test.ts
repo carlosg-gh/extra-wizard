@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { OcgcoreSummonEngine } from '../matching/engines/ocgcore/ocgcoreEngine';
@@ -21,7 +22,8 @@ function sqliteAvailable(): boolean {
     return false;
   }
 }
-const RUN = sqliteAvailable() && existsSync(CDB) && existsSync(join(SCRIPTS, 'utility.lua'));
+// Assets first, so CI without the vendored checkout never probes (and warns on) node:sqlite.
+const RUN = existsSync(CDB) && existsSync(join(SCRIPTS, 'utility.lua')) && sqliteAvailable();
 
 const mat = (id: string, name: string): MaterialInstance => ({ instanceId: id, card: mkCard({ id, name }) });
 // Dynamic import keeps node:sqlite out of the module graph when the suite is skipped.
@@ -50,6 +52,29 @@ const newEngine = async () => {
       await engine.prime([mat('46986414', 'Dark Magician')], [84013237, 21044178]);
       expect(engine.confirms('84013237')).toBe(false);
       expect(engine.confirms('21044178')).toBe(false);
+    });
+
+    it('build-time extraction round-trips card structs through JSON', async () => {
+      const { buildOcgcoreAssets } = await import('../../pipeline/ocgcore/buildOcgcoreAssets');
+      const { createNodeProvider } = await import('../../pipeline/ocgcore/nodeProvider');
+      const out = mkdtempSync(join(tmpdir(), 'ocgcore-assets-'));
+      const codes = [84013237, 44508094, 4731783]; // Xyz, Synchro, Link (exercises link_marker)
+      const res = await buildOcgcoreAssets({ codes, cdbPaths: [CDB], outDir: out });
+      expect(res.count).toBeGreaterThanOrEqual(2);
+
+      const json = JSON.parse(
+        readFileSync(join(out, 'ocgcore', 'cards.codes.json'), 'utf-8'),
+      ) as Record<string, { race: string; setcodes: number[]; type: number; link_marker: number }>;
+      const provider = createNodeProvider({ cdbPaths: [CDB], scriptRoot: SCRIPTS });
+      for (const code of codes) {
+        const fromJson = json[code];
+        if (!fromJson) continue;
+        const fromDb = provider.readCard(code)!;
+        expect(BigInt(fromJson.race)).toBe(fromDb.race); // 64-bit race survives JSON
+        expect(fromJson.setcodes).toEqual(fromDb.setcodes);
+        expect(fromJson.type).toBe(fromDb.type);
+        expect(fromJson.link_marker).toBe(fromDb.link_marker);
+      }
     });
   },
 );

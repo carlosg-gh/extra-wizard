@@ -15,6 +15,7 @@
     "preview": "vite preview",
     "data:refresh": "node --max-old-space-size=4096 --import tsx src/pipeline/refresh.ts",
     "data:coverage": "node --max-old-space-size=4096 --import tsx src/pipeline/refresh.ts --coverage-only",
+    "data:ocgcore": "node --experimental-sqlite --max-old-space-size=4096 --import tsx src/pipeline/refresh.ts --with-ocgcore",
     "typecheck": "tsc --noEmit",
     "vendor:ocgcore": "node scripts/vendor-ocgcore.mjs",
     "test": "vitest run",
