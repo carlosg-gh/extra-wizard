@@ -1,4 +1,12 @@
-import type { Attribute, CostKind, LinkArrow, ParseStatus, SummonMethod, SummonType } from './enums';
+import type {
+  Attribute,
+  BanStatus,
+  CostKind,
+  LinkArrow,
+  ParseStatus,
+  SummonMethod,
+  SummonType,
+} from './enums';
 
 /**
  * A single material requirement (one "slot specification").
@@ -19,10 +27,18 @@ export interface MaterialConstraint {
   levelMin?: number;
   /** Maximum Level ("Level N or lower"). */
   levelMax?: number;
+  /** Minimum Link Rating ("Link-N or higher" / "Link-N"). */
+  linkRatingMin?: number;
+  /** Maximum Link Rating ("Link-N or lower" / "Link-N"). */
+  linkRatingMax?: number;
   /** Allowed races/Types (e.g. ['Dragon']). */
   race?: string[];
+  /** Disallowed races/Types ("non-Dragon"). */
+  excludeRace?: string[];
   /** Allowed attributes. */
   attribute?: Attribute[];
+  /** Disallowed attributes ("non-FIRE"). */
+  excludeAttribute?: Attribute[];
   /** Allowed archetypes — matched against a card's `series`. */
   archetype?: string[];
   /** Specific card names (Fusion named materials). */
@@ -38,6 +54,12 @@ export interface MaterialConstraint {
   requireSummonType?: SummonType[];
   /** Material must NOT be one of these summon types (e.g. "non-Link monsters"). */
   excludeSummonType?: SummonType[];
+  /**
+   * Material must be an Extra Deck monster (any non-null `summonType`). Set when a
+   * recipe requires a monster "in an Extra Monster Zone" (only Extra Deck monsters
+   * can occupy it) — e.g. Gravity Controller.
+   */
+  requireExtraDeck?: boolean;
 
   /** Material must HAVE a Level (excludes Link/Xyz). Set on Synchro constraints. */
   requireLevel?: boolean;
@@ -133,6 +155,10 @@ export interface Card {
   isPendulum: boolean;
   /** Released only in the OCG (never in the TCG). Drives the "OCG" ribbon. */
   ocgOnly: boolean;
+  /** TCG Forbidden & Limited status; `null` = Unlimited or not-yet-populated. */
+  banTcg: BanStatus;
+  /** OCG Forbidden & Limited status; `null` = Unlimited or not-yet-populated. */
+  banOcg: BanStatus;
   /** True for the small set of "Fusion Substitute" monsters (e.g. King of the Swamp). */
   isFusionSubstitute: boolean;
   /** Extra Deck mechanic, or `null` for main-deck monsters. */

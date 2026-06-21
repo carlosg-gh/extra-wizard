@@ -28,6 +28,17 @@ export const SUMMON_METHODS: readonly SummonMethod[] = [
 /** What a path consumes from the FIELD (informational; the matcher stays material-based). */
 export type CostKind = 'materials' | 'tribute' | 'send-to-gy';
 
+/**
+ * A card's Forbidden & Limited status in one region. `null` = Unlimited (or not
+ * yet populated / not-yet-released). "Forbidden" is the only value that hides a chain.
+ */
+export type BanStatus = 'Forbidden' | 'Limited' | 'Semi-Limited' | null;
+
+/** Which Forbidden & Limited List applies. */
+export type BanRegion = 'tcg' | 'ocg';
+
+export const BAN_REGIONS: readonly BanRegion[] = ['tcg', 'ocg'];
+
 export type Attribute = 'LIGHT' | 'DARK' | 'EARTH' | 'WATER' | 'FIRE' | 'WIND' | 'DIVINE';
 
 export const ATTRIBUTES: readonly Attribute[] = [

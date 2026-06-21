@@ -3,6 +3,7 @@
 export * from './domain/enums';
 export * from './domain/types';
 export * from './domain/query';
+export * from './domain/banlist';
 
 export { parseMaterials } from './parser/parseMaterials';
 export type { ParserMonsterMeta } from './parser/parseMaterials';
@@ -15,3 +16,4 @@ export { ParserSummonEngine } from './matching/ParserSummonEngine';
 export type { ISummonEngine } from './matching/ISummonEngine';
 export { cardSatisfiesConstraint } from './matching/constraintEval';
 export { matchGroup } from './matching/groupMatch';
+export { chainUsesBanned } from './matching/banWalk';

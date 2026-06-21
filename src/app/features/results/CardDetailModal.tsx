@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { BuildStep } from '@core';
+import type { BanRegion, BuildStep } from '@core';
 import type { MatchResult } from '../../data/types';
 import { cardMetaLine } from '../../lib/cardMeta';
 import { cardImageUrl } from '../../lib/images';
@@ -30,11 +30,20 @@ function ChainNode({ step }: { step: BuildStep }) {
   );
 }
 
-export function CardDetailModal({ result, onClose }: { result: MatchResult; onClose: () => void }) {
+export function CardDetailModal({
+  result,
+  region,
+  onClose,
+}: {
+  result: MatchResult;
+  region: BanRegion;
+  onClose: () => void;
+}) {
   const m = result.monster;
   const { detail, loading, error } = useCardDetail(m.imageId);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [imgOk, setImgOk] = useState(true);
+  const usesBanned = region === 'ocg' ? result.usesBannedOcg : result.usesBannedTcg;
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -79,6 +88,7 @@ export function CardDetailModal({ result, onClose }: { result: MatchResult; onCl
               {result.steps != null && result.steps > 1 && (
                 <span className="badge badge--bridge">{result.steps}-step chain</span>
               )}
+              {usesBanned && <span className="badge badge--banned">banned</span>}
               {m.parseStatus !== 'exact' && <span className="badge badge--approx">approx</span>}
             </div>
 
@@ -90,6 +100,13 @@ export function CardDetailModal({ result, onClose }: { result: MatchResult; onCl
             <p className="modal__mats">
               <strong>Materials:</strong> {m.materialsRaw || '—'}
             </p>
+
+            {usesBanned && (
+              <p className="modal__warning">
+                ⚠ This chain relies on a card Forbidden on the {region.toUpperCase()} banlist — it
+                isn’t legal as shown.
+              </p>
+            )}
 
             {result.chain && result.steps != null && result.steps > 1 && (
               <div className="modal__chain">

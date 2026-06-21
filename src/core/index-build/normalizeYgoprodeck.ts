@@ -1,6 +1,7 @@
 import type { Attribute, LinkArrow, SummonType } from '../domain/enums';
 import { ATTRIBUTES } from '../domain/enums';
 import type { Card } from '../domain/types';
+import { normalizeBanStatus } from '../domain/banlist';
 import { FUSION_SUBSTITUTE_IDS } from '../parser/lexicon';
 import { materialLineFromText } from './materialLine';
 
@@ -26,6 +27,8 @@ export interface YgoprodeckRaw {
   archetype?: string;
   /** Present when the bulk request uses `?misc=yes`. */
   misc_info?: Array<{ formats?: string[]; tcg_date?: string; ocg_date?: string }>;
+  /** Forbidden & Limited status; absent when the card is Unlimited. */
+  banlist_info?: { ban_tcg?: string; ban_ocg?: string; ban_goat?: string };
 }
 
 const LINK_MARKER_MAP: Record<string, LinkArrow> = {
@@ -43,14 +46,19 @@ function num(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
-/** Released in OCG but never in TCG, from `misc_info` (needs `?misc=yes`). */
+/**
+ * Released in OCG but never in TCG, from `misc_info` (needs `?misc=yes`). Combines
+ * BOTH evidence sources (formats and dates) and flags OCG-only only when there is
+ * positive OCG evidence and NO TCG evidence of any kind — so a card with a real
+ * `tcg_date` is never mis-flagged just because `formats` lags behind.
+ */
 function deriveOcgOnly(raw: YgoprodeckRaw): boolean {
   const misc = Array.isArray(raw.misc_info) ? raw.misc_info[0] : undefined;
   if (!misc) return false;
-  if (Array.isArray(misc.formats)) {
-    return misc.formats.includes('OCG') && !misc.formats.includes('TCG');
-  }
-  return Boolean(misc.ocg_date) && !misc.tcg_date;
+  const formats = Array.isArray(misc.formats) ? misc.formats : [];
+  const hasTcg = formats.includes('TCG') || Boolean(misc.tcg_date);
+  const hasOcg = formats.includes('OCG') || Boolean(misc.ocg_date);
+  return hasOcg && !hasTcg;
 }
 
 /**
@@ -126,6 +134,8 @@ export function normalizeYgoprodeckCard(raw: YgoprodeckRaw): Card | null {
     isToken,
     isPendulum,
     ocgOnly: deriveOcgOnly(raw),
+    banTcg: normalizeBanStatus(raw.banlist_info?.ban_tcg),
+    banOcg: normalizeBanStatus(raw.banlist_info?.ban_ocg),
     isFusionSubstitute: FUSION_SUBSTITUTE_IDS.has(id),
     summonType,
     imageId: id,

@@ -95,4 +95,20 @@ describe('normalizeYgoprodeck', () => {
     const noMisc = map({ id: 11, name: 'No misc', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4 })!;
     expect(noMisc.ocgOnly).toBe(false);
   });
+
+  it('does NOT flag OCG-only when a TCG date exists despite formats lagging', () => {
+    // Regression: a card already in the TCG (has tcg_date) must not show the OCG ribbon
+    // even if `formats` still only lists OCG.
+    const c = map({ id: 12, name: 'TCG released', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4, misc_info: [{ formats: ['OCG'], ocg_date: '2024-01-01', tcg_date: '2024-06-01' }] })!;
+    expect(c.ocgOnly).toBe(false);
+  });
+
+  it('maps banlist_info to banTcg/banOcg ("Banned" → "Forbidden")', () => {
+    const c = map({ id: 13, name: 'Banned card', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4, banlist_info: { ban_tcg: 'Banned', ban_ocg: 'Limited' } })!;
+    expect(c.banTcg).toBe('Forbidden');
+    expect(c.banOcg).toBe('Limited');
+    const legal = map({ id: 14, name: 'Legal', type: 'Effect Monster', frameType: 'effect', race: 'Dragon', attribute: 'DARK', level: 4 })!;
+    expect(legal.banTcg).toBeNull();
+    expect(legal.banOcg).toBeNull();
+  });
 });
