@@ -3,9 +3,14 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'public/data', 'node_modules', 'coverage'] },
+  { ignores: ['dist', 'public/data', 'node_modules', 'coverage', 'vendor'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    // Node-only build/utility scripts (plain ESM JS, not part of the TS project).
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },

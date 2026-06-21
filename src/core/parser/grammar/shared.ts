@@ -64,10 +64,14 @@ export function parseCount(seg: string): ParsedCount {
 
 export interface FilterResult {
   attribute?: Attribute[];
+  excludeAttribute?: Attribute[];
   race?: string[];
+  excludeRace?: string[];
   level?: number[];
   levelMin?: number;
   levelMax?: number;
+  linkRatingMin?: number;
+  linkRatingMax?: number;
   archetype?: string[];
   requireTuner?: boolean;
   requireNonTuner?: boolean;
@@ -76,6 +80,7 @@ export interface FilterResult {
   requireAbility?: string[];
   requireSummonType?: SummonType[];
   excludeSummonType?: SummonType[];
+  requireExtraDeck?: boolean;
   /** Unrecognized residual text (non-empty ⇒ the segment is only approximate). */
   leftover: string;
   exact: boolean;
@@ -98,10 +103,46 @@ export function parseFilters(input: string): FilterResult {
   });
   if (arche.length) out.archetype = arche;
 
-  if (/\bnon-Link\b/i.test(rest)) {
-    out.excludeSummonType = ['Link'];
-    rest = rest.replace(/\bnon-Link\b/gi, ' ');
+  // "... in an Extra Monster Zone": only Extra Deck monsters occupy the EMZ, so the
+  // material must itself be an Extra Deck monster (e.g. Gravity Controller).
+  if (/\bExtra Monster Zone\b/i.test(rest)) {
+    out.requireExtraDeck = true;
+    rest = rest.replace(/\bin\s+(?:an?|the)\s+Extra Monster Zones?\b/gi, ' ');
+    rest = rest.replace(/\bExtra Monster Zones?\b/gi, ' ');
   }
+
+  // Link-rating requirement on the material itself ("Link-2 or higher Link Monster").
+  // Peeled before the summon-type pass so it isn't double-read as a plain "Link".
+  // A bare "Link-N" pins both bounds. Each form also implies a Link Monster.
+  const linkHi = rest.match(/\bLink-(\d+)\s+or\s+higher\b/i);
+  const linkLo = rest.match(/\bLink-(\d+)\s+or\s+lower\b/i);
+  if (linkHi) {
+    out.linkRatingMin = parseInt(linkHi[1], 10);
+    out.requireSummonType = ['Link'];
+    rest = rest.replace(linkHi[0], ' ');
+  } else if (linkLo) {
+    out.linkRatingMax = parseInt(linkLo[1], 10);
+    out.requireSummonType = ['Link'];
+    rest = rest.replace(linkLo[0], ' ');
+  } else {
+    const linkEq = rest.match(/\bLink-(\d+)\b/i);
+    if (linkEq) {
+      out.linkRatingMin = parseInt(linkEq[1], 10);
+      out.linkRatingMax = out.linkRatingMin;
+      out.requireSummonType = ['Link'];
+      rest = rest.replace(linkEq[0], ' ');
+    }
+  }
+
+  // non-<SummonType> (generalizes "non-Link") → excludeSummonType. Must precede the
+  // positive summon-type pass, which would otherwise read the "Link" in "non-Link".
+  const exSts: SummonType[] = [];
+  rest = rest.replace(/\bnon-(Fusion|Synchro|Xyz|Link)\b/gi, (_m, w: string) => {
+    const k = w.toLowerCase();
+    exSts.push(k === 'fusion' ? 'Fusion' : k === 'synchro' ? 'Synchro' : k === 'xyz' ? 'Xyz' : 'Link');
+    return ' ';
+  });
+  if (exSts.length) out.excludeSummonType = Array.from(new Set(exSts));
 
   if (/\bnon-Tuners?\b/i.test(rest)) {
     out.requireNonTuner = true;
@@ -110,6 +151,15 @@ export function parseFilters(input: string): FilterResult {
     out.requireTuner = true;
   }
   rest = rest.replace(/\bTuners?\b/gi, ' ');
+
+  // non-<Attribute> ("non-FIRE") → excludeAttribute. Peeled before the positive pass
+  // so the negated attribute isn't mistakenly read as a *required* one.
+  const exAttrs: Attribute[] = [];
+  rest = rest.replace(new RegExp(`\\bnon-(${ATTRIBUTES.join('|')})\\b`, 'g'), (_m, a: string) => {
+    exAttrs.push(a as Attribute);
+    return ' ';
+  });
+  if (exAttrs.length) out.excludeAttribute = exAttrs;
 
   const attrs: Attribute[] = [];
   rest = rest.replace(ATTR_RE, (a) => {
@@ -147,6 +197,14 @@ export function parseFilters(input: string): FilterResult {
     out.requireEffect = true;
     rest = rest.replace(/\bEffect\b/gi, ' ');
   }
+
+  // non-<Race> ("non-Dragon") → excludeRace, before the positive race pass.
+  const exRaces: string[] = [];
+  rest = rest.replace(new RegExp(`\\bnon-(${RACE_ALTERNATION})(?:-Type| Type)?\\b`, 'g'), (_m, r: string) => {
+    exRaces.push(r);
+    return ' ';
+  });
+  if (exRaces.length) out.excludeRace = exRaces;
 
   const races: string[] = [];
   rest = rest.replace(RACE_RE, (_m, r) => {
@@ -190,10 +248,14 @@ export function buildConstraint(
 ): MaterialConstraint {
   const c: MaterialConstraint = { min, max, raw };
   if (f.attribute) c.attribute = f.attribute;
+  if (f.excludeAttribute) c.excludeAttribute = f.excludeAttribute;
   if (f.race) c.race = f.race;
+  if (f.excludeRace) c.excludeRace = f.excludeRace;
   if (f.level) c.level = f.level;
   if (f.levelMin != null) c.levelMin = f.levelMin;
   if (f.levelMax != null) c.levelMax = f.levelMax;
+  if (f.linkRatingMin != null) c.linkRatingMin = f.linkRatingMin;
+  if (f.linkRatingMax != null) c.linkRatingMax = f.linkRatingMax;
   if (f.archetype) c.archetype = f.archetype;
   if (f.requireTuner) c.requireTuner = true;
   if (f.requireNonTuner) c.requireNonTuner = true;
@@ -202,6 +264,7 @@ export function buildConstraint(
   if (f.requireAbility) c.requireAbility = f.requireAbility;
   if (f.requireSummonType) c.requireSummonType = f.requireSummonType;
   if (f.excludeSummonType) c.excludeSummonType = f.excludeSummonType;
+  if (f.requireExtraDeck) c.requireExtraDeck = true;
   if (tokenAllowed !== undefined) c.tokenAllowed = tokenAllowed;
   return c;
 }

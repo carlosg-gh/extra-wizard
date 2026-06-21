@@ -24,9 +24,25 @@ export function cardSatisfiesConstraint(card: Card, c: MaterialConstraint): bool
   if (c.level && (card.level == null || !c.level.includes(card.level))) return false;
   if (c.levelMin != null && (card.level == null || card.level < c.levelMin)) return false;
   if (c.levelMax != null && (card.level == null || card.level > c.levelMax)) return false;
+  if (c.linkRatingMin != null && (card.linkRating == null || card.linkRating < c.linkRatingMin)) {
+    return false;
+  }
+  if (c.linkRatingMax != null && (card.linkRating == null || card.linkRating > c.linkRatingMax)) {
+    return false;
+  }
   if (c.race && !c.race.includes(card.race)) return false;
+  if (c.excludeRace && c.excludeRace.includes(card.race)) return false;
   if (c.attribute && (card.attribute == null || !c.attribute.includes(card.attribute))) return false;
-  if (c.archetype && !c.archetype.some((a) => card.series.includes(a))) return false;
+  if (c.excludeAttribute && card.attribute != null && c.excludeAttribute.includes(card.attribute)) {
+    return false;
+  }
+  // Archetype membership is name-based in-game ("a card with 'X' in its name"); union with
+  // the curated `series` (which also covers non-substring members). Strictly inclusive.
+  if (c.archetype && !c.archetype.some((a) => card.series.includes(a) || card.name.includes(a))) {
+    return false;
+  }
+  // Only Extra Deck monsters can be in an Extra Monster Zone.
+  if (c.requireExtraDeck && card.summonType == null) return false;
   if (
     c.requireSummonType &&
     (card.summonType == null || !c.requireSummonType.includes(card.summonType))

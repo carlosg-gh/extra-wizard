@@ -24,6 +24,8 @@ function mk(over: Partial<ResultMonster>): MatchResult {
       isToken: false,
       isPendulum: false,
       ocgOnly: false,
+      banTcg: null,
+      banOcg: null,
       isFusionSubstitute: false,
       summonType: 'Synchro',
       materialsRaw: '',

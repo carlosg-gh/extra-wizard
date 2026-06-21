@@ -1,6 +1,7 @@
 import type { Attribute, LinkArrow, SummonType } from '../domain/enums';
 import { ATTRIBUTES } from '../domain/enums';
 import type { Card } from '../domain/types';
+import { normalizeBanStatus } from '../domain/banlist';
 import { FUSION_SUBSTITUTE_IDS } from '../parser/lexicon';
 import { materialLineFromText } from './materialLine';
 
@@ -20,6 +21,8 @@ export interface RawCard {
   def?: number | string | null;
   series?: string[] | null;
   materials?: string | Record<string, unknown> | null;
+  /** Forbidden & Limited status per region (values: Forbidden/Limited/Semi-Limited/Unlimited/…). */
+  limit_regulation?: { tcg?: string | null; ocg?: string | null } | null;
 }
 
 const ARROW_MAP: Record<string, LinkArrow> = {
@@ -119,6 +122,8 @@ export function normalizeCard(raw: RawCard): Card | null {
     isToken: rest.includes('Token'),
     isPendulum: rest.includes('Pendulum'),
     ocgOnly: false, // yaml-yugi fallback path; the OCG ribbon is accurate on the YGOPRODeck dataset
+    banTcg: normalizeBanStatus(raw.limit_regulation?.tcg),
+    banOcg: normalizeBanStatus(raw.limit_regulation?.ocg),
     isFusionSubstitute: FUSION_SUBSTITUTE_IDS.has(id),
     summonType,
     imageId: id,

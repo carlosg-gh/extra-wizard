@@ -71,11 +71,14 @@ test('loads data, adds two Level-4 materials, and shows results', async ({ page 
   await page.keyboard.press('Escape');
   await expect(page.locator('.modal')).toHaveCount(0);
 
-  // Bridge mode (chained summoning) re-runs the query and still yields results
-  // (it's a superset of the direct matches).
-  const bridge = page.getByRole('switch', { name: /bridge mode/i });
-  await bridge.check();
-  await expect(bridge).toBeChecked();
+  // Bridge results live in their own tab now. Opening it selects the tab and reveals
+  // the bridge options toolbar; switching back to Direct still shows its results
+  // (bridge is additive — opening it never discards the direct matches).
+  await page.getByRole('tab', { name: /^bridge/i }).click();
+  await expect(page.getByRole('tab', { name: /^bridge/i })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('switch', { name: /include fusions/i })).toBeVisible();
+  await page.getByRole('tab', { name: /^direct/i }).click();
+  await expect(page.getByRole('tab', { name: /^direct/i })).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('.rc').first()).toBeVisible({ timeout: 20_000 });
   expect(await page.locator('.rc').count()).toBeGreaterThan(0);
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { BanRegion } from '@core';
 import type { MatchResult } from '../../data/types';
 import { levelRankLabel } from '../../lib/cardMeta';
 import { cardImageUrl } from '../../lib/images';
@@ -6,13 +7,16 @@ import { cardImageUrl } from '../../lib/images';
 export function ResultCard({
   result,
   onSelect,
+  region,
 }: {
   result: MatchResult;
   onSelect: (r: MatchResult) => void;
+  region: BanRegion;
 }) {
   const { monster: m } = result;
   const [imgOk, setImgOk] = useState(true);
   const bridged = result.steps != null && result.steps > 1;
+  const usesBanned = region === 'ocg' ? result.usesBannedOcg : result.usesBannedTcg;
 
   const statLine = [levelRankLabel(m), m.attribute ?? undefined, m.race].filter(Boolean).join(' · ');
 
@@ -51,6 +55,14 @@ export function ResultCard({
               title={`Reached through a chain of ${result.steps} summons — open for the full build.`}
             >
               {result.steps}-step
+            </span>
+          )}
+          {usesBanned && (
+            <span
+              className="badge badge--banned"
+              title={`This chain uses a card Forbidden on the ${region.toUpperCase()} banlist.`}
+            >
+              banned
             </span>
           )}
           {m.parseStatus !== 'exact' && (

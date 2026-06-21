@@ -108,6 +108,25 @@ async function main(): Promise<void> {
   if (!coverageOnly) {
     await writeArtifacts(built);
     console.log(`\nWrote artifacts to ${OUT_DIR}`);
+
+    // Opt-in (and non-fatal): extract the ocgcore card-data shard from the vendored
+    // BabelCDB. Needs `pnpm vendor:ocgcore` + node --experimental-sqlite (use the
+    // `data:ocgcore` script); otherwise it logs and skips, like `--with-images`.
+    if (args.has('--with-ocgcore')) {
+      try {
+        const { buildOcgcoreAssets } = await import('./ocgcore/buildOcgcoreAssets');
+        const codes = built.inputPool
+          .map((c) => c.password)
+          .filter((p): p is number => p != null);
+        const cdb = resolve(process.cwd(), 'vendor', 'ocgcore', 'BabelCDB', 'cards.cdb');
+        const r = await buildOcgcoreAssets({ codes, cdbPaths: [cdb], outDir: OUT_DIR });
+        console.log(
+          `ocgcore: ${r.count} cards (${(r.bytes / 1024).toFixed(0)} KB, ${r.missing} missing) → ${OUT_DIR}/ocgcore`,
+        );
+      } catch (err) {
+        console.warn(`[--with-ocgcore] skipped: ${(err as Error).message}`);
+      }
+    }
   }
 
   const rate = coveragePassRate(built.meta.coverage);

@@ -90,7 +90,9 @@ export function ResultsFilterPanel({
   onClose?: () => void;
 }) {
   const set = (patch: Partial<ResultFilters>) => onChange({ ...filters, ...patch });
-  const showApprox = !filters.parseStatus || filters.parseStatus.includes('approximate');
+  // Approximate matches show by default (they're safe supersets, badged "approx"); this
+  // is an opt-in to hide them. Checked ⇒ exact-only.
+  const hideApprox = !!filters.parseStatus && !filters.parseStatus.includes('approximate');
   const active = activeFilterCount(filters);
 
   return (
@@ -213,10 +215,10 @@ export function ResultsFilterPanel({
           <label className="check">
             <input
               type="checkbox"
-              checked={showApprox}
-              onChange={(e) => set({ parseStatus: e.target.checked ? undefined : ['exact'] })}
+              checked={hideApprox}
+              onChange={(e) => set({ parseStatus: e.target.checked ? ['exact'] : undefined })}
             />
-            Show approximate matches
+            Hide approximate matches
           </label>
         </FilterGroup>
       )}

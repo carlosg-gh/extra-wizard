@@ -1,17 +1,15 @@
 import * as Comlink from 'comlink';
 import { useEffect, useRef, useState } from 'react';
 import type { Card, MatchMode } from '@core';
-import type { MatchResult } from '../data/types';
+import type { QueryAllResult } from '../data/types';
 
 export interface WorkerApi {
   whenReady(): Promise<number>;
-  query(
+  queryAll(
     selected: Card[],
     mode: MatchMode,
-    includeUnparsed: boolean,
-    bridge?: boolean,
-    excludeFusions?: boolean,
-  ): Promise<MatchResult[]>;
+    opts: { wantBridge: boolean; includeUnparsed?: boolean; excludeFusions?: boolean },
+  ): Promise<QueryAllResult>;
 }
 
 export function useMatchWorker(): {

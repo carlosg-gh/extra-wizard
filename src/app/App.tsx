@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Card, MatchMode, ResultFilters } from '@core';
+import type { BanRegion, Card, MatchMode, ResultFilters } from '@core';
 import { useCardDb } from './data/useCardDb';
 import type { MatchResult, SelectedEntry } from './data/types';
 import { CardSearchInput } from './features/card-input/CardSearchInput';
@@ -9,6 +9,7 @@ import { ResultsFilterPanel } from './features/filters/ResultsFilterPanel';
 import { MatchModeToggle } from './features/mode-toggle/MatchModeToggle';
 import { ResultsEmptyState } from './features/results/ResultsEmptyState';
 import { ResultsGrid } from './features/results/ResultsGrid';
+import { ResultsTabs, type ResultTab } from './features/results/ResultsTabs';
 import { CardDetailModal } from './features/results/CardDetailModal';
 import { useMatchWorker } from './worker/useMatchWorker';
 
@@ -18,11 +19,16 @@ export default function App() {
 
   const [selected, setSelected] = useState<SelectedEntry[]>([]);
   const [mode, setMode] = useState<MatchMode>('any-subset');
-  const [bridgeMode, setBridgeMode] = useState(false);
+  const [tab, setTab] = useState<ResultTab>('direct');
   const [includeFusions, setIncludeFusions] = useState(false);
-  const [filters, setFilters] = useState<ResultFilters>({ parseStatus: ['exact'] });
-  const [results, setResults] = useState<MatchResult[]>([]);
+  const [region, setRegion] = useState<BanRegion>('tcg');
+  const [showBanned, setShowBanned] = useState(false);
+  const [filters, setFilters] = useState<ResultFilters>({});
+  const [direct, setDirect] = useState<MatchResult[]>([]);
+  const [bridge, setBridge] = useState<MatchResult[]>([]);
+  const [bridgeLoaded, setBridgeLoaded] = useState(false);
   const [querying, setQuerying] = useState(false);
+  const [bridgeQuerying, setBridgeQuerying] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<MatchResult | null>(null);
 
@@ -56,48 +62,69 @@ export default function App() {
     [selected],
   );
 
-  // Re-run the (worker) query when inputs/mode/bridge change. Debounced for snappy
-  // typing; bridge mode is heavier, so it gets a longer debounce.
+  // Bridge is the heavy path, so it's computed lazily — only once the Bridge tab has
+  // been opened (then it stays fresh so the tab count keeps updating).
+  const wantBridge = tab === 'bridge' || bridgeLoaded;
+
+  // Re-run the (worker) query when inputs/mode/options change. Debounced for snappy
+  // typing; the bridge path gets a longer debounce.
   useEffect(() => {
     if (!workerReady) return;
     if (expanded.length === 0) {
-      setResults([]);
+      setDirect([]);
+      setBridge([]);
       return;
     }
     let cancelled = false;
     setQuerying(true);
+    if (wantBridge) setBridgeQuerying(true);
     const t = window.setTimeout(
       () => {
-        void api.current?.query(expanded, mode, false, bridgeMode, !includeFusions).then((r) => {
-          if (!cancelled) {
-            setResults(r);
+        void api.current
+          ?.queryAll(expanded, mode, { wantBridge, excludeFusions: !includeFusions })
+          .then((r) => {
+            if (cancelled) return;
+            setDirect(r.direct);
+            if (wantBridge) {
+              setBridge(r.bridge);
+              setBridgeLoaded(true);
+            }
             setQuerying(false);
-          }
-        });
+            setBridgeQuerying(false);
+          });
       },
-      bridgeMode ? 300 : 120,
+      wantBridge ? 300 : 120,
     );
     return () => {
       cancelled = true;
       window.clearTimeout(t);
     };
-  }, [expanded, mode, bridgeMode, includeFusions, workerReady, api]);
+  }, [expanded, mode, wantBridge, includeFusions, workerReady, api]);
 
-  const facets = useMemo(() => deriveFacets(results), [results]);
+  // Hide chains that rely on a Forbidden card (in the selected region) unless revealed.
+  const bridgeVisible = useMemo(() => {
+    if (showBanned) return bridge;
+    return bridge.filter((r) => !(region === 'ocg' ? r.usesBannedOcg : r.usesBannedTcg));
+  }, [bridge, showBanned, region]);
+  const bannedHiddenCount = bridge.length - bridgeVisible.length;
+
+  const activeResults = tab === 'bridge' ? bridgeVisible : direct;
+  const facets = useMemo(() => deriveFacets(activeResults), [activeResults]);
   // Direct matches lead; bridged ones follow by chain length, then by ATK.
   const sorted = useMemo(
     () =>
-      applyFilters(results, filters).sort((a, b) => {
+      applyFilters(activeResults, filters).sort((a, b) => {
         const sa = a.steps ?? 1;
         const sb = b.steps ?? 1;
         if (sa !== sb) return sa - sb;
         return (b.monster.atk ?? 0) - (a.monster.atk ?? 0);
       }),
-    [results, filters],
+    [activeResults, filters],
   );
 
   const ready = db.ready && workerReady;
   const activeFilters = activeFilterCount(filters);
+  const tabLoading = tab === 'bridge' ? bridgeQuerying : querying;
 
   return (
     <div className="app">
@@ -124,43 +151,8 @@ export default function App() {
           />
           <div className="mode-row">
             <span className="muted small">Match mode</span>
-            <MatchModeToggle mode={mode} onChange={setMode} disabled={bridgeMode} />
+            <MatchModeToggle mode={mode} onChange={setMode} />
           </div>
-          <label className="bridge-row">
-            <span className="bridge-row__text">
-              <span className="bridge-row__title">Bridge mode</span>
-              <span className="muted xsmall">
-                Chain summons up to 3 deep — a monster you make can be material for the next.
-              </span>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              className="switch"
-              checked={bridgeMode}
-              onChange={(e) => setBridgeMode(e.target.checked)}
-              aria-label="Bridge mode"
-            />
-          </label>
-          {bridgeMode && (
-            <label className="bridge-row bridge-row--sub">
-              <span className="bridge-row__text">
-                <span className="bridge-row__title">Include Fusions</span>
-                <span className="muted xsmall">
-                  Off by default — Fusions need a Fusion Spell. Cards with a self-summon condition
-                  (e.g. Magistus) always show.
-                </span>
-              </span>
-              <input
-                type="checkbox"
-                role="switch"
-                className="switch"
-                checked={includeFusions}
-                onChange={(e) => setIncludeFusions(e.target.checked)}
-                aria-label="Include Fusions"
-              />
-            </label>
-          )}
           {db.error && <p className="error">Failed to load card data: {db.error}</p>}
           <p className="muted xsmall status">
             {ready
@@ -171,23 +163,76 @@ export default function App() {
 
         <section className="results-area">
           <div className="results-area__head">
-            <h2 className="panel__title">
-              {sorted.length} result{sorted.length === 1 ? '' : 's'}
-              {querying ? ' …' : ''}
-            </h2>
-            <button
-              type="button"
-              className="filters-toggle"
-              onClick={() => setFiltersOpen((v) => !v)}
-              aria-expanded={filtersOpen}
-            >
-              Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
-            </button>
+            <ResultsTabs
+              tab={tab}
+              onChange={setTab}
+              directCount={direct.length}
+              bridgeCount={bridgeVisible.length}
+              bridgeLoading={bridgeQuerying && !bridgeLoaded}
+              bridgeReady={bridgeLoaded}
+            />
+            <div className="results-area__head-right">
+              <span className="muted small">
+                {sorted.length} result{sorted.length === 1 ? '' : 's'}
+                {querying ? ' …' : ''}
+              </span>
+              <button
+                type="button"
+                className="filters-toggle"
+                onClick={() => setFiltersOpen((v) => !v)}
+                aria-expanded={filtersOpen}
+              >
+                Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
+              </button>
+            </div>
           </div>
+
+          {tab === 'bridge' && (
+            <div className="results-toolbar">
+              <label className="toolbar-toggle" title="Fusions need a Fusion Spell, so they're off by default in chains.">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  className="switch"
+                  checked={includeFusions}
+                  onChange={(e) => setIncludeFusions(e.target.checked)}
+                  aria-label="Include Fusions"
+                />
+                <span>Include Fusions</span>
+              </label>
+              <label className="toolbar-toggle" title="Reveal chains that need a Forbidden card in the selected banlist.">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  className="switch"
+                  checked={showBanned}
+                  onChange={(e) => setShowBanned(e.target.checked)}
+                  aria-label="Show chains using banned cards"
+                />
+                <span>
+                  Show banned-card chains
+                  {!showBanned && bannedHiddenCount > 0 ? ` (${bannedHiddenCount} hidden)` : ''}
+                </span>
+              </label>
+              <label className="toolbar-region">
+                <span className="muted small">Banlist</span>
+                <select
+                  className="select select--sm"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value as BanRegion)}
+                  aria-label="Banlist region"
+                >
+                  <option value="tcg">TCG</option>
+                  <option value="ocg">OCG</option>
+                </select>
+              </label>
+            </div>
+          )}
+
           {sorted.length > 0 ? (
-            <ResultsGrid results={sorted} onSelect={setSelectedCard} />
+            <ResultsGrid results={sorted} onSelect={setSelectedCard} region={region} />
           ) : (
-            <ResultsEmptyState hasInput={expanded.length > 0} loading={querying} />
+            <ResultsEmptyState hasInput={expanded.length > 0} loading={tabLoading} />
           )}
         </section>
 
@@ -196,13 +241,17 @@ export default function App() {
           filters={filters}
           onChange={setFilters}
           resultCount={sorted.length}
-          totalCount={results.length}
+          totalCount={activeResults.length}
           open={filtersOpen}
           onClose={() => setFiltersOpen(false)}
         />
 
         {selectedCard && (
-          <CardDetailModal result={selectedCard} onClose={() => setSelectedCard(null)} />
+          <CardDetailModal
+            result={selectedCard}
+            region={region}
+            onClose={() => setSelectedCard(null)}
+          />
         )}
       </main>
     </div>

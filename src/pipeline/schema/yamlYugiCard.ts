@@ -27,6 +27,14 @@ export const RawCardSchema = z
     def: z.union([z.number(), z.string()]).optional().nullable(),
     series: z.array(z.string()).optional().nullable(),
     materials: z.union([z.string(), z.record(z.unknown())]).optional().nullable(),
+    limit_regulation: z
+      .object({
+        tcg: z.string().optional().nullable(),
+        ocg: z.string().optional().nullable(),
+      })
+      .passthrough()
+      .optional()
+      .nullable(),
   })
   .passthrough();
 
