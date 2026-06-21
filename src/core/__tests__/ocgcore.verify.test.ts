@@ -63,6 +63,18 @@ const newEngine = async () => {
       expect(engine.wasEvaluable('99999999')).toBe(false); // missing data ⇒ keep parser verdict
     });
 
+    it('primes within a reasonable latency budget (warm core)', async () => {
+      const engine = await newEngine();
+      const materials = [mat('69140098', 'Gemini Elf'), mat('91731841', 'Gem-Knight Garnet')];
+      const candidates = [84013237, 21044178, 29669359, 44508094];
+      await engine.prime(materials, candidates); // warm-up (pays one-time core init)
+      const t0 = performance.now();
+      await engine.prime(materials, candidates);
+      const ms = performance.now() - t0;
+      console.log(`[ocgcore] warm prime: ${ms.toFixed(0)}ms for ${candidates.length} candidates`);
+      expect(ms).toBeLessThan(5000); // generous ceiling — catches hangs, not perf jitter
+    });
+
     it('build-time extraction round-trips card structs through JSON', async () => {
       const { buildOcgcoreAssets } = await import('../../pipeline/ocgcore/buildOcgcoreAssets');
       const { createNodeProvider } = await import('../../pipeline/ocgcore/nodeProvider');
