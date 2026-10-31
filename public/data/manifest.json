@@ -1,36 +1,36 @@
 {
-  "generatedAt": "2026-06-19T23:43:48.130Z",
-  "source": "yaml-yugi:https://raw.githubusercontent.com/DawnbrandBots/yaml-yugi/aggregate/cards.json",
+  "generatedAt": "2026-10-31T11:39:53.417Z",
+  "source": "ygoprodeck:https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes",
   "shards": [
     {
       "file": "index.fusion.json",
-      "count": 477,
-      "bytes": 401476,
-      "sha256": "94683fa1250c347f"
+      "count": 588,
+      "bytes": 489719,
+      "sha256": "8efb87d0ec2d0265"
     },
     {
       "file": "index.synchro.json",
-      "count": 454,
-      "bytes": 402714,
-      "sha256": "03c465c2a705acdb"
+      "count": 543,
+      "bytes": 466532,
+      "sha256": "76b7cbd02934b249"
     },
     {
       "file": "index.xyz.json",
-      "count": 522,
-      "bytes": 395854,
-      "sha256": "f1f09478b87e6b24"
+      "count": 607,
+      "bytes": 446579,
+      "sha256": "2cc2dd5c92e58b3c"
     },
     {
       "file": "index.link.json",
-      "count": 407,
-      "bytes": 312164,
-      "sha256": "74be65defe7fe67a"
+      "count": 482,
+      "bytes": 363755,
+      "sha256": "1b145bf44c89392e"
     },
     {
       "file": "input-pool.json",
-      "count": 8403,
-      "bytes": 3366603,
-      "sha256": "a6adfd19cadb78c0"
+      "count": 9524,
+      "bytes": 3731037,
+      "sha256": "1e654437ede3f9d4"
     }
   ]
 }
